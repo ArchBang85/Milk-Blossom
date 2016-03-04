@@ -99,6 +99,7 @@ public class MilkBlossom : MonoBehaviour {
 
         private float offsetX, offsetY;
 
+
         // list of positions
         new Vector3 maxBounds = new Vector3(0, 0, 0);
         new Vector3 minBounds = new Vector3(0, 0, 0);
@@ -106,8 +107,51 @@ public class MilkBlossom : MonoBehaviour {
         public void CreateHexShapedGrid(GameObject hexTile, int gridRadius = 3)
         {
 
+            float unitLength = (useAsInnerCircleRadius) ? (radius / Mathf.Sqrt(3) / 2) : radius;
+
+            offsetX = unitLength * Mathf.Sqrt(3);
+            offsetY = unitLength * 1.5f;
+
+            // create in a shape of a hexagon
+
+            for (int q = -gridRadius; q <= gridRadius; q++)
+            {
+                int r1 = Mathf.Max(-gridRadius, -q - gridRadius);
+                int r2 = Mathf.Min(gridRadius, -q + gridRadius);
+                for (int r = r1; r <= r2; r++)
+                {
+
+                    tile newTile = new tile();
+                    newTile.cubePosition = new Vector3(q, r, -q- r);
+                    // insert hex
+                    Vector2 offset = CubeToOddR(newTile.cubePosition);
+                    Vector2 hexPos = HexOffset((int)offset.x, (int)offset.y);
+
+                    // randomly choose points amount
+                    tileList.Add(newTile);
+                    Vector3 pos = new Vector3(hexPos.x, hexPos.y, 0);
+                    GameObject newTileObject = (GameObject)Instantiate(hexTile, pos, Quaternion.identity);
+                    newTile.tileObject = newTileObject;
+                    try
+                    {
+                        newTileObject.transform.parent = GameObject.Find("HexGrid").transform;
+
+                    }
+                    catch
+                    {
+                        Debug.Log("Was not able to add hex to hex grid");
+                    }
+
+                }
+
+            }
+
+
+
             int[] pointsPool = new int[3];
             pointsPool[0] += tileCount - pointsPool[0] - pointsPool[1] - pointsPool[2];
+
+
 
 
         }
@@ -160,10 +204,7 @@ public class MilkBlossom : MonoBehaviour {
         {
             tileCount = x * y;
 
-            float unitLength = (useAsInnerCircleRadius)? (radius / Mathf.Sqrt(3) / 2) : radius;
 
-            offsetX = unitLength * Mathf.Sqrt(3);
-            offsetY = unitLength * 1.5f;
 
             // create tiles themselves
             for ( int i = 0; i < x; i++)
@@ -219,11 +260,11 @@ public class MilkBlossom : MonoBehaviour {
             if(y % 2 == 0)
             {
                 position.x = x * offsetX;
-                position.y = y * -offsetY;
+                position.y = y * +offsetY;
             } else
             {
                 position.x = (x + 0.5f) * offsetX;
-                position.y = y * -offsetY;
+                position.y = y * +offsetY;
             }
             return position;
         }
@@ -237,9 +278,19 @@ public class MilkBlossom : MonoBehaviour {
             cubeCoordinates.z = y;
             cubeCoordinates.y = -cubeCoordinates.x- cubeCoordinates.z;
 
-
             return cubeCoordinates;
         }
+
+        // cube to odd r
+        Vector2 CubeToOddR(Vector3 cubeCoords)
+        {
+            Vector2 oddR = new Vector2();
+            oddR.x = (int)cubeCoords.x + ((int)cubeCoords.z - ((int)cubeCoords.z &1))/2;
+            oddR.y = (int)cubeCoords.z;
+
+            return oddR;
+        }
+
         // even r to cube
 
         Vector3 EvenRToCube(int x, int y)
@@ -379,7 +430,7 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.radius = hexRadius;
         liveHexGrid.useAsInnerCircleRadius = useAsInnerCircleRadius;
 
-        liveHexGrid.CreateGrid(hexTile);
+        liveHexGrid.CreateHexShapedGrid(hexTile);
     }
 
     void LinearHighlighter(tile sourceTile, int direction, int range)
