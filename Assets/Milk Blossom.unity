@@ -734,7 +734,7 @@ MonoBehaviour:
   maxX: 14
   minY: -10
   maxY: 10
-  length: 80
+  length: 100
   points: []
   colours: []
   colourChoices:
@@ -742,4 +742,6 @@ MonoBehaviour:
   - {r: 0.8897059, g: 0.8897059, b: 0.8897059, a: 0}
   - {r: 0.52205884, g: 0.52973616, b: 0.52973616, a: 0}
   destinationPoints: []
+  speeds: []
+  tParams: []
   amount: 1

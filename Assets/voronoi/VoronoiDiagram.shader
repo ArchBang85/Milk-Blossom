@@ -4,7 +4,7 @@
 	Properties
 	{
 		_HeatTex("Texture", 2D) = "white" {}
-		_Radius("Radius", Range(0,0.25)) = 0.03
+		_Radius("Radius", Range(0,0.25)) = 0.00
 		_P("P", Range(1,2)) = 2
 		[Toggle] _D("Distance", Float) = 0
 	}
@@ -42,6 +42,7 @@
 				vertOutput o;
 				o.pos = mul(UNITY_MATRIX_MVP, input.pos);
 				o.worldPos = mul(_Object2World, input.pos).xyz;
+
 				return o;
 			}
 
@@ -63,7 +64,7 @@
 				int minI = 0;	// Index of min
 				for (int i = 0; i < _Length; i++)
 				{
-					half dist = distance_minkowski(output.worldPos.xy, _Points[i].xy);
+					half dist = distance_minkowski(output.worldPos.xy, _Points[i].xy) * 0.33f;
 					if (dist < _Radius)
 						return fixed4(0, 0, 0, 1);
 
