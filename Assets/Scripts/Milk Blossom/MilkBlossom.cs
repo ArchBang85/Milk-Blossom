@@ -56,16 +56,17 @@ public class MilkBlossom : MonoBehaviour {
     public GameObject playerObject;
     [Range(1,4)]
     private int players = 3;
-    
+    static List<player> playerList = new List<player>();
+    private int activePlayer = 1;
 
     class player
     {
         [Range(1,4)]
-        int Playernumber;
-        bool AI = true;
-        
-        Vector3 position;
-
+        public int playerNumber;
+        bool AI = false;
+        Vector3 cubePosition;
+        Vector2 offsetPosition;
+        public tile playerTile;
 
     }
 
@@ -259,7 +260,9 @@ public class MilkBlossom : MonoBehaviour {
                         GameObject newPlayer = (GameObject)Instantiate(playerObject, chosenTile.tileObject.transform.position + new Vector3(0, 0, -0.5f), Quaternion.identity);
                         chosenTile.SetOccupied(true);
                         player pl = new player();
-                        
+                        playerList.Add(pl);
+                        pl.playerNumber = p;
+                        pl.playerTile = chosenTile;
                         break;
                     }
                 }
@@ -404,10 +407,7 @@ public class MilkBlossom : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-        gridGenerator();
-
-        //hax
-        activeTile = tileList[18];
+        InitGame();
 
         directions[0] = new Vector3(+1, -1,  0);
         directions[1] = new Vector3(+1,  0, -1);
@@ -423,10 +423,6 @@ public class MilkBlossom : MonoBehaviour {
     {
 
         // timer before live
-        if (Time.timeSinceLevelLoad > 2.0f)
-        {
-            currentState = states.live;
-        }
 
         if (currentState == states.live)
         {
@@ -491,8 +487,9 @@ public class MilkBlossom : MonoBehaviour {
         }
     }
 
-    void gridGenerator()
+    void InitGame()
     {
+        // create grid, allocate points and allocate players
         liveHexGrid = new hexGrid();
         liveHexGrid.x = hexGridx;
         liveHexGrid.y = hexGridy;
@@ -502,8 +499,28 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.playerObj = playerObject;
 
         StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile));
-        StartCoroutine(basicDelay(5.0f));
+        StartCoroutine(basicDelay(1.0f));
+        // highlight starting player
+        SelectPlayer(activePlayer);
 
+        // once game is setup, set it to live
+        currentState = states.live;
+    }
+
+    void SelectPlayer(int playerNumber)
+    {
+        foreach(player p in playerList)
+        {
+            if (p.playerNumber == playerNumber)
+            {
+                Debug.Log("Setting active tile");
+                activeTile = p.playerTile;
+            }
+            else
+            {
+                Debug.Log("Invalid player number!");
+            }
+        }
     }
 
     void LinearHighlighter(tile sourceTile, int direction, int range)
@@ -518,7 +535,14 @@ public class MilkBlossom : MonoBehaviour {
             t.SetHighlight(false);
         }
 
-        sourceTile.SetHighlight(true);
+        try
+        {
+            sourceTile.SetHighlight(true);
+        } catch
+        {
+
+        }
+
 
         for (int r = 1; r <= range; r++)
         {
@@ -534,8 +558,6 @@ public class MilkBlossom : MonoBehaviour {
             }
 
         }
-
-
 
     }
 
