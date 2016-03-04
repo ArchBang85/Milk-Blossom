@@ -44,8 +44,9 @@ public class MilkBlossom : MonoBehaviour {
     static List<tile> tileList = new List<tile>();
     tile activeTile;
     private int targetRange = 2;
+    
 
-    private enum states {starting, planning, moving};
+    private enum states {starting, planning, live, moving};
     states currentState = states.starting;
     Vector3[] directions = new Vector3[6];
     [Range(0, 5)]
@@ -71,6 +72,7 @@ public class MilkBlossom : MonoBehaviour {
     class tile
     {
         public Vector3 cubePosition;
+        public Vector2 offsetPosition;
         [Range(1, 3)]
         public int points;
         public bool active = true;
@@ -109,6 +111,10 @@ public class MilkBlossom : MonoBehaviour {
             return occupied;
         }
     }
+    static IEnumerator basicDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+    }
 
     public class hexGrid
     {
@@ -118,17 +124,19 @@ public class MilkBlossom : MonoBehaviour {
         public bool useAsInnerCircleRadius = true;
         int tileCount;
         public int playerCount = 3;
+        public GameObject playerObj;
 
         private float offsetX, offsetY;
-
+        private float standardDelay = 0.03f;
 
         // list of positions
         new Vector3 maxBounds = new Vector3(0, 0, 0);
         new Vector3 minBounds = new Vector3(0, 0, 0);
 
-        public void CreateHexShapedGrid(GameObject hexTile, int gridRadius = 3)
+        public IEnumerator CreateHexShapedGrid(GameObject hexTile, int gridRadius = 3)
         {
 
+            float delayModifier = 1.0f;
             float unitLength = (useAsInnerCircleRadius) ? (radius / Mathf.Sqrt(3) / 2) : radius;
 
             offsetX = unitLength * Mathf.Sqrt(3);
@@ -153,25 +161,22 @@ public class MilkBlossom : MonoBehaviour {
                     // randomly choose points amount
                     tileList.Add(newTile);
                     Vector3 pos = new Vector3(hexPos.x, hexPos.y, 0);
-                    GameObject newTileObject = (GameObject)Instantiate(hexTile, pos, Quaternion.identity);
-                    newTile.tileObject = newTileObject;
-                    try
-                    {
-                        newTileObject.transform.parent = GameObject.Find("HexGrid").transform;
-
-                    }
-                    catch
-                    {
-                        Debug.Log("Was not able to add hex to hex grid");
-                    }
+                    newTile.offsetPosition = pos;
 
                 }
 
             }
+            foreach (tile t in tileList)
+            {
+
+                GameObject newTileObject = (GameObject)Instantiate(hexTile, t.offsetPosition, Quaternion.identity);
+                t.tileObject = newTileObject;
+                t.tileObject.transform.parent = GameObject.Find("HexGrid").transform;
+                yield return new WaitForSeconds(standardDelay);
+            }
 
             AllocatePoints();
-
-
+            AllocatePlayers(playerObj);
 
         }
 
@@ -222,40 +227,6 @@ public class MilkBlossom : MonoBehaviour {
                 }
             }
         }
-        public void CreateGrid(GameObject hexTile)
-        {
-            tileCount = x * y;
-
-            // create tiles themselves
-            for ( int i = 0; i < x; i++)
-            {
-                for (int j = 0; j < y; j++ )
-                {
-                    Vector2 hexPos = HexOffset(i, j);
-                    tile newTile = new tile();
-
-                    // convert coords to cube format based on whether row amount is odd or even
-                    newTile.cubePosition = OddRToCube(i, j);
-                    // randomly choose points amount
-                    tileList.Add(newTile);
-                    Vector3 pos = new Vector3(hexPos.x, hexPos.y, 0);
-                    GameObject newTileObject = (GameObject)Instantiate(hexTile, pos, Quaternion.identity);
-                    newTile.tileObject = newTileObject;
-                    try
-                    {
-                        newTileObject.transform.parent = GameObject.Find("HexGrid").transform;
-                   
-                    }
-                    catch
-                    {
-                        Debug.Log("Was not able to add hex to hex grid");
-                    }
-                        
-                        // AddDebugText(newTileObject, newTile.cubePosition.x.ToString() + "," + newTile.cubePosition.y.ToString() + "," + newTile.cubePosition.z.ToString());
-
-                }
-            }
-        }
         public void AllocatePlayers(GameObject playerObject)
         {
             // legitimate tiles are the ones with one point only
@@ -284,8 +255,11 @@ public class MilkBlossom : MonoBehaviour {
                     {
                         // allocate player on tile
                         Debug.Log("allocating player");
+                        //yield return new WaitForSeconds(standardDelay);
                         GameObject newPlayer = (GameObject)Instantiate(playerObject, chosenTile.tileObject.transform.position + new Vector3(0, 0, -0.5f), Quaternion.identity);
                         chosenTile.SetOccupied(true);
+                        player pl = new player();
+                        
                         break;
                     }
                 }
@@ -293,9 +267,41 @@ public class MilkBlossom : MonoBehaviour {
 
 
         }
-          
-        
 
+        public void CreateGrid(GameObject hexTile)
+        {
+            tileCount = x * y;
+
+            // create tiles themselves
+            for (int i = 0; i < x; i++)
+            {
+                for (int j = 0; j < y; j++)
+                {
+                    Vector2 hexPos = HexOffset(i, j);
+                    tile newTile = new tile();
+
+                    // convert coords to cube format based on whether row amount is odd or even
+                    newTile.cubePosition = OddRToCube(i, j);
+                    // randomly choose points amount
+                    tileList.Add(newTile);
+                    Vector3 pos = new Vector3(hexPos.x, hexPos.y, 0);
+                    GameObject newTileObject = (GameObject)Instantiate(hexTile, pos, Quaternion.identity);
+                    newTile.tileObject = newTileObject;
+                    try
+                    {
+                        newTileObject.transform.parent = GameObject.Find("HexGrid").transform;
+
+                    }
+                    catch
+                    {
+                        Debug.Log("Was not able to add hex to hex grid");
+                    }
+
+                    // AddDebugText(newTileObject, newTile.cubePosition.x.ToString() + "," + newTile.cubePosition.y.ToString() + "," + newTile.cubePosition.z.ToString());
+
+                }
+            }
+        }
         void AddDebugText(GameObject targetObject, string inputText)
         {
             try
@@ -398,8 +404,6 @@ public class MilkBlossom : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-
-
         gridGenerator();
 
         //hax
@@ -418,64 +422,73 @@ public class MilkBlossom : MonoBehaviour {
     void Update()
     {
 
-        // CONTROLS
-        // debug visualisations 
-        if(Input.GetKey(KeyCode.F1))
+        // timer before live
+        if (Time.timeSinceLevelLoad > 2.0f)
         {
-            liveHexGrid.DisplayIndices();
-        }
-        if (Input.GetKey(KeyCode.F2))
-        {
-            liveHexGrid.DisplayCoords();
-        }
-        if (Input.GetKey(KeyCode.F3))
-        {
-            liveHexGrid.DisplayPoints();
-        }
-        if (Input.GetKey(KeyCode.F4))
-        {
-            liveHexGrid.DisplayClear();
+            currentState = states.live;
         }
 
-        if(Input.GetKey(KeyCode.W))
+        if (currentState == states.live)
         {
-            targetRange++;
-        }
-        if(Input.GetKey(KeyCode.X))
-        {
-            targetRange--;
-        }
+            // CONTROLS
+            // debug visualisations 
+            if (Input.GetKey(KeyCode.F1))
+            {
+                liveHexGrid.DisplayIndices();
+            }
+            if (Input.GetKey(KeyCode.F2))
+            {
+                liveHexGrid.DisplayCoords();
+            }
+            if (Input.GetKey(KeyCode.F3))
+            {
+                liveHexGrid.DisplayPoints();
+            }
+            if (Input.GetKey(KeyCode.F4))
+            {
+                liveHexGrid.DisplayClear();
+            }
 
-        // Rudimentary highlight controls
-        if(Input.GetKey(KeyCode.Q))
-        {
-            currentDir = 4;
-        }
+            if (Input.GetKey(KeyCode.W))
+            {
+                targetRange++;
+            }
+            if (Input.GetKey(KeyCode.X))
+            {
+                targetRange--;
+            }
 
-        if (Input.GetKey(KeyCode.E))
-        {
-            currentDir = 5;
-        }
+            // Rudimentary highlight controls
+            if (Input.GetKey(KeyCode.Q))
+            {
+                currentDir = 4;
+            }
 
-        if (Input.GetKey(KeyCode.A))
-        {
-            currentDir = 3;
+            if (Input.GetKey(KeyCode.E))
+            {
+                currentDir = 5;
+            }
 
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            currentDir = 0;
-        }
-        if (Input.GetKey(KeyCode.Z))
-        {
-            currentDir = 2;
-        }
-        if (Input.GetKey(KeyCode.C))
-        {
-            currentDir = 1;
-        }
+            if (Input.GetKey(KeyCode.A))
+            {
+                currentDir = 3;
 
-        LinearHighlighter(activeTile, currentDir, targetRange);
+            }
+            if (Input.GetKey(KeyCode.D))
+            {
+                currentDir = 0;
+            }
+            if (Input.GetKey(KeyCode.Z))
+            {
+                currentDir = 2;
+            }
+            if (Input.GetKey(KeyCode.C))
+            {
+                currentDir = 1;
+            }
+
+            LinearHighlighter(activeTile, currentDir, targetRange);
+        }
     }
 
     void gridGenerator()
@@ -486,9 +499,11 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.radius = hexRadius;
         liveHexGrid.useAsInnerCircleRadius = useAsInnerCircleRadius;
         liveHexGrid.playerCount = players;
+        liveHexGrid.playerObj = playerObject;
 
-        liveHexGrid.CreateHexShapedGrid(hexTile);
-        liveHexGrid.AllocatePlayers(playerObject);
+        StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile));
+        StartCoroutine(basicDelay(5.0f));
+
     }
 
     void LinearHighlighter(tile sourceTile, int direction, int range)
