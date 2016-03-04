@@ -19,6 +19,7 @@ public class HexBehaviour : MonoBehaviour {
             if (myTime > 2f)
             {
                 iTween.Pause(this.gameObject);
+                transform.position = new Vector3(transform.position.x, transform.position.y, 0);
                 paused = true;
             }
         }

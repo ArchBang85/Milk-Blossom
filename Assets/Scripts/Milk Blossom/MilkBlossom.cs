@@ -42,7 +42,7 @@ public class MilkBlossom : MonoBehaviour {
     public float hexRadius = 0.5f;
     public bool useAsInnerCircleRadius = true;
     static List<tile> tileList = new List<tile>();
-    tile activeTile;
+    static tile activeTile;
     private int targetRange = 2;
     
 
@@ -151,16 +151,14 @@ public class MilkBlossom : MonoBehaviour {
                 int r2 = Mathf.Min(gridRadius, -q + gridRadius);
                 for (int r = r1; r <= r2; r++)
                 {
-
+                    // create tile class
                     tile newTile = new tile();
+                    tileList.Add(newTile);
                     tileCount++;
+
                     newTile.cubePosition = new Vector3(q, r, -q- r);
-                    // insert hex
                     Vector2 offset = CubeToOddR(newTile.cubePosition);
                     Vector2 hexPos = HexOffset((int)offset.x, (int)offset.y);
-
-                    // randomly choose points amount
-                    tileList.Add(newTile);
                     Vector3 pos = new Vector3(hexPos.x, hexPos.y, 0);
                     newTile.offsetPosition = pos;
 
@@ -176,8 +174,11 @@ public class MilkBlossom : MonoBehaviour {
                 yield return new WaitForSeconds(standardDelay);
             }
 
+            // do remaining setup things within ienumerator to ensure sequence is correct
             AllocatePoints();
+            yield return new WaitForSeconds(1.6f);
             AllocatePlayers(playerObj);
+            activeTile = SelectPlayer(1);
 
         }
 
@@ -257,7 +258,7 @@ public class MilkBlossom : MonoBehaviour {
                         // allocate player on tile
                         Debug.Log("allocating player");
                         //yield return new WaitForSeconds(standardDelay);
-                        GameObject newPlayer = (GameObject)Instantiate(playerObject, chosenTile.tileObject.transform.position + new Vector3(0, 0, -0.5f), Quaternion.identity);
+                        GameObject newPlayer = (GameObject)Instantiate(playerObject, new Vector3(chosenTile.tileObject.transform.position.x, chosenTile.tileObject.transform.position.y, -0.5f), Quaternion.identity);
                         chosenTile.SetOccupied(true);
                         player pl = new player();
                         playerList.Add(pl);
@@ -501,26 +502,38 @@ public class MilkBlossom : MonoBehaviour {
         StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile));
         StartCoroutine(basicDelay(1.0f));
         // highlight starting player
-        SelectPlayer(activePlayer);
+
 
         // once game is setup, set it to live
-        currentState = states.live;
+        StartCoroutine(switchState(states.live, 4.0f));
+        
     }
 
-    void SelectPlayer(int playerNumber)
+    IEnumerator switchState(states s, float delay)
     {
+        yield return new WaitForSeconds(delay);
+        currentState = s;
+        Debug.Log("Switced to " + s);
+    }
+
+    static tile SelectPlayer(int playerNumber = 1)
+    {
+        Debug.Log("playernumber" + playerNumber);
         foreach(player p in playerList)
         {
+            Debug.Log(p.playerNumber);
             if (p.playerNumber == playerNumber)
             {
                 Debug.Log("Setting active tile");
-                activeTile = p.playerTile;
+                return p.playerTile;
             }
             else
             {
                 Debug.Log("Invalid player number!");
+                return null;
             }
         }
+        return null;
     }
 
     void LinearHighlighter(tile sourceTile, int direction, int range)
