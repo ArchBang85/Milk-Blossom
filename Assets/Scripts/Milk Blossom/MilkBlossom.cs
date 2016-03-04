@@ -44,7 +44,7 @@ public class MilkBlossom : MonoBehaviour {
     static List<tile> tileList = new List<tile>();
     static tile activeTile;
     private int targetRange = 2;
-    
+    private float turnCooldown = 0.5f;
 
     private enum states {starting, planning, live, moving};
     states currentState = states.starting;
@@ -458,86 +458,91 @@ public class MilkBlossom : MonoBehaviour {
 
         if (currentState == states.live)
         {
-            // CONTROLS
-            // debug visualisations 
-            if (Input.GetKey(KeyCode.F1))
+            turnCooldown -= Time.deltaTime;
+            if (turnCooldown < 0)
             {
-                liveHexGrid.DisplayIndices();
-            }
-            if (Input.GetKey(KeyCode.F2))
-            {
-                liveHexGrid.DisplayCoords();
-            }
-            if (Input.GetKey(KeyCode.F3))
-            {
-                liveHexGrid.DisplayPoints();
-            }
-            if (Input.GetKey(KeyCode.F4))
-            {
-                liveHexGrid.DisplayClear();
-            }
-
-            // DEBUG TURN SWITCHING
-            if(Input.GetKey(KeyCode.N))
-            {
-                if (activePlayer < players)
+                turnCooldown = 0.06f;
+                // CONTROLS
+                // debug visualisations 
+                if (Input.GetKey(KeyCode.F1))
                 {
-                    activePlayer += 1;
+                    liveHexGrid.DisplayIndices();
                 }
-                else
+                if (Input.GetKey(KeyCode.F2))
                 {
-                    activePlayer = 1;
+                    liveHexGrid.DisplayCoords();
                 }
-                activeTile = SelectPlayer(activePlayer);
-                
-            }
-
-            if (Input.GetKey(KeyCode.W))
-            {
-                targetRange++;
-            }
-            if (Input.GetKey(KeyCode.X))
-            {
-                targetRange--;
-            }
-
-            // Rudimentary highlight controls
-            if (Input.GetKey(KeyCode.Q))
-            {
-                currentDir = 4;
-            }
-
-            if (Input.GetKey(KeyCode.E))
-            {
-                currentDir = 5;
-            }
-
-            if (Input.GetKey(KeyCode.A))
-            {
-                currentDir = 3;
-
-            }
-            if (Input.GetKey(KeyCode.D))
-            {
-                currentDir = 0;
-            }
-            if (Input.GetKey(KeyCode.Z))
-            {
-                currentDir = 2;
-            }
-            if (Input.GetKey(KeyCode.C))
-            {
-                currentDir = 1;
-            }
-
-            tile targetTile = LinearHighlighter(activeTile, currentDir, targetRange);
-
-            if (Input.GetKey(KeyCode.Return))
-            {
-                if (activeTile != targetTile)
+                if (Input.GetKey(KeyCode.F3))
                 {
-                    
-                    MakeMove(playerList[activePlayer - 1], targetTile);
+                    liveHexGrid.DisplayPoints();
+                }
+                if (Input.GetKey(KeyCode.F4))
+                {
+                    liveHexGrid.DisplayClear();
+                }
+
+                // DEBUG TURN SWITCHING
+                if (Input.GetKey(KeyCode.N))
+                {
+                    if (activePlayer < players)
+                    {
+                        activePlayer += 1;
+                    }
+                    else
+                    {
+                        activePlayer = 1;
+                    }
+                    activeTile = SelectPlayer(activePlayer);
+
+                }
+
+                if (Input.GetKey(KeyCode.W))
+                {
+                    targetRange++;
+                }
+                if (Input.GetKey(KeyCode.X))
+                {
+                    targetRange--;
+                }
+
+                // Rudimentary highlight controls
+                if (Input.GetKey(KeyCode.Q))
+                {
+                    currentDir = 4;
+                }
+
+                if (Input.GetKey(KeyCode.E))
+                {
+                    currentDir = 5;
+                }
+
+                if (Input.GetKey(KeyCode.A))
+                {
+                    currentDir = 3;
+
+                }
+                if (Input.GetKey(KeyCode.D))
+                {
+                    currentDir = 0;
+                }
+                if (Input.GetKey(KeyCode.Z))
+                {
+                    currentDir = 2;
+                }
+                if (Input.GetKey(KeyCode.C))
+                {
+                    currentDir = 1;
+                }
+
+                tile targetTile = LinearHighlighter(activeTile, currentDir, targetRange);
+
+                if (Input.GetKey(KeyCode.Return))
+                {
+                    if (activeTile != targetTile)
+                    {
+
+                        MakeMove(playerList[activePlayer - 1], targetTile);
+                    }
                 }
             }
 
@@ -617,11 +622,21 @@ public class MilkBlossom : MonoBehaviour {
             // does the tile exist
             foreach (tile t in tileList)
             {
-                if(t.cubePosition == sourceTile.cubePosition + relativeTargetPosition && t.GetActive())
+                if (t.cubePosition == sourceTile.cubePosition + relativeTargetPosition)
                 {
-                    t.SetHighlight(true);
-                    targetTile = t;
-                }
+                    if (t.GetActive() && !t.GetOccupied())
+                    {
+                        t.SetHighlight(true);
+                        targetTile = t;
+                    }
+                    else
+                    {
+                        // if it's not a valid tile then it is either deactivated or occupied and the last tile should be the one before the obstacle
+                        range = r; // bad practice, setting an int within the function that's returning a type
+                        return targetTile;
+
+                    }
+                }          
             }
 
         }
@@ -634,9 +649,11 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.leaveTile(p.playerTile);
 
         // move player unit to new tile
-        p.playerGameObject.transform.Translate(new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z));
+        p.playerGameObject.transform.position = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
 
-        // set new tile as the active tile
+        // set player tile as the target tile
+        p.playerTile = targetTile;
+
         activeTile = targetTile;
     }
 
