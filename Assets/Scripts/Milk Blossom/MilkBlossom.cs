@@ -176,7 +176,7 @@ public class MilkBlossom : MonoBehaviour {
 
             // do remaining setup things within ienumerator to ensure sequence is correct
             AllocatePoints();
-            yield return new WaitForSeconds(1.6f);
+            yield return new WaitForSeconds(1.8f);
             AllocatePlayers(playerObj);
             activeTile = SelectPlayer(1);
 
@@ -372,7 +372,7 @@ public class MilkBlossom : MonoBehaviour {
         public void DisplayIndices()
         {
             // simply number tiles
-            for (int i = 0; i < tileList.Count - 1; i++)
+            for (int i = 0; i < tileList.Count; i++)
             {
                 AddDebugText(tileList[i].tileObject, i.ToString());
             }
@@ -380,7 +380,7 @@ public class MilkBlossom : MonoBehaviour {
         public void DisplayCoords()
         {
             // cubic coords
-            for (int i = 0; i < tileList.Count - 1; i++)
+            for (int i = 0; i < tileList.Count; i++)
             {
                 string coordText = tileList[i].cubePosition.x.ToString() + ", " + tileList[i].cubePosition.y.ToString() + ", " + tileList[i].cubePosition.z.ToString();
                 AddDebugText(tileList[i].tileObject, coordText);
@@ -389,7 +389,7 @@ public class MilkBlossom : MonoBehaviour {
         public void DisplayPoints()
         {
             // points
-            for (int i = 0; i < tileList.Count - 1; i++)
+            for (int i = 0; i < tileList.Count; i++)
             {
                 AddDebugText(tileList[i].tileObject, tileList[i].points.ToString());
             }
@@ -398,7 +398,7 @@ public class MilkBlossom : MonoBehaviour {
         public void DisplayClear()
         {
             // clear all
-            for (int i = 0; i < tileList.Count - 1; i++)
+            for (int i = 0; i < tileList.Count; i++)
             {
                 AddDebugText(tileList[i].tileObject, "");
             }
@@ -444,6 +444,21 @@ public class MilkBlossom : MonoBehaviour {
             if (Input.GetKey(KeyCode.F4))
             {
                 liveHexGrid.DisplayClear();
+            }
+
+            // DEBUG TURN SWITCHING
+            if(Input.GetKey(KeyCode.N))
+            {
+                if (activePlayer < players)
+                {
+                    activePlayer += 1;
+                }
+                else
+                {
+                    activePlayer = 1;
+                }
+                activeTile = SelectPlayer(activePlayer);
+                
             }
 
             if (Input.GetKey(KeyCode.W))
@@ -526,11 +541,6 @@ public class MilkBlossom : MonoBehaviour {
             {
                 Debug.Log("Setting active tile");
                 return p.playerTile;
-            }
-            else
-            {
-                Debug.Log("Invalid player number!");
-                return null;
             }
         }
         return null;
