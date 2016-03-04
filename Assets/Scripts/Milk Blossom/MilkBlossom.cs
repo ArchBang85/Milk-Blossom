@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -21,12 +22,12 @@ public class MilkBlossom : MonoBehaviour {
     // the AIs or the points from tile to tile
 
     // In order to make this game I need to implement:
-    // A hex grid
-    // Points on the grids
-    // States for starting and player turn selection and turn movement
-    // Player characters
-    // Points counting
-    // Timer
+    // A hex grid                                                           x
+    // Points on the grids                                                  x
+    // States for starting and player turn selection and turn movement      x
+    // Player characters                                                    x
+    // Points counting                                                      x
+    // Timer    
     // Overall aesthetic
 
     // AI for enemies: 
@@ -35,6 +36,14 @@ public class MilkBlossom : MonoBehaviour {
     // tiles with three points available, in which case prioritise those for the move
     // if no three point tiles are available, do the same for two point tiles, 
     // else do it for one point tiles
+
+    // further ideas
+    // just let players do as many turns as feasible, don't worry about isolated areas (though
+    // they need to be taken into account in calculating when the game ends?
+    // game ends when a player has no further valid moves
+    // player who can't move does a shaky-shake and perishes
+
+
     public GameObject hexTile;
     hexGrid liveHexGrid;
     public int hexGridx = 5;
@@ -45,6 +54,8 @@ public class MilkBlossom : MonoBehaviour {
     static tile activeTile;
     private int targetRange = 2;
     private float turnCooldown = 0.5f;
+    public GameObject[] scoreObjects;
+
 
     private enum states {starting, planning, live, moving};
     states currentState = states.starting;
@@ -68,7 +79,15 @@ public class MilkBlossom : MonoBehaviour {
         Vector2 offsetPosition;
         public tile playerTile;
         public GameObject playerGameObject;
-
+        private int points;
+        public void AddPoints(int p)
+        {
+            points += p;
+        }
+        public int GetPoints()
+        {
+            return points;
+        }
     }
 
     public class tile
@@ -551,6 +570,16 @@ public class MilkBlossom : MonoBehaviour {
         }
         activeTile = SelectPlayer(activePlayer);
     }
+    IEnumerator SetupPlayers()
+    {
+
+        for(int p = 0; p < players; p++)
+        {
+
+        }
+        yield return new WaitForSeconds(1.0f);
+    }
+
     void InitGame()
     {
         // create grid, allocate points and allocate players
@@ -568,6 +597,18 @@ public class MilkBlossom : MonoBehaviour {
         // once game is setup, set it to live
         StartCoroutine(switchState(states.live, 3.0f));
         
+        // set player amounts
+        for (int i = 0; i < players; i++)
+        {
+            if (i < 2)
+            {
+                scoreObjects[i].transform.GetComponent<Text>().text = "P"+ (i + 1).ToString()+"\n"+"0";
+            }
+            else
+            {
+                scoreObjects[i].transform.GetComponent<Text>().text = "0\n" + "P" + (i + 1).ToString();
+            }  
+        }
     }
 
     IEnumerator switchState(states s, float delay)
@@ -642,11 +683,20 @@ public class MilkBlossom : MonoBehaviour {
         return targetTile;
     }
 
+    void UpdateScores()
+    {
+        
+    }
+
+
     void MakeMove(player p, tile targetTile)
     {
+        // acquire points
+        p.AddPoints(p.playerTile.points);
+
         // leave current tile
         liveHexGrid.leaveTile(p.playerTile);
-
+        
         // move player unit to new tile
         p.playerGameObject.transform.position = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
 
@@ -654,6 +704,7 @@ public class MilkBlossom : MonoBehaviour {
         p.playerTile = targetTile;
 
         activeTile = targetTile;
+        activeTile.SetOccupied(true);
     }
 
     Vector3 PseudoAIMove(GameObject unit)
