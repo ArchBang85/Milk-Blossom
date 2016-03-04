@@ -35,8 +35,8 @@ public class VoronoiMilk : MonoBehaviour {
 
             destinationPoints[i] = new Vector2
                 (
-                    points[i].x += Random.Range(-0.5f, 0.5f),
-                    points[i].y += Random.Range(-0.5f, 0.5f)
+                    points[i].x + Random.Range(-0.5f, 0.5f),
+                    points[i].y + Random.Range(-0.5f, 0.5f)
                 );
                 
             colours[i] = colourChoices[Random.Range(0, colourChoices.Length)];
@@ -53,7 +53,7 @@ public class VoronoiMilk : MonoBehaviour {
     void FixedUpdate()
     {
  
-            if (tParam < 1)
+            if (tParam < 1.0f)
             {
                 tParam += Time.deltaTime;
             } else
@@ -83,8 +83,8 @@ public class VoronoiMilk : MonoBehaviour {
         {
             destinationPoints[i] = new Vector2
             (
-                points[i].x += Random.Range(-0.5f, 0.5f),
-                points[i].y += Random.Range(-0.5f, 0.5f)
+                points[i].x + Random.Range(-0.5f, 0.5f),
+                points[i].y + Random.Range(-0.5f, 0.5f)
             );
         }
     }
