@@ -50,7 +50,9 @@ public class MilkBlossom : MonoBehaviour {
     Vector3[] directions = new Vector3[6];
     [Range(0, 5)]
     private int currentDir;
+
     // player info
+    public GameObject playerObject;
     [Range(1,4)]
     private int players = 3;
     
@@ -81,7 +83,7 @@ public class MilkBlossom : MonoBehaviour {
             //
         }
 
-        public void setHighlight(bool isOn)
+        public void SetHighlight(bool isOn)
         {
             highlighted = isOn;
             if(highlighted)
@@ -92,6 +94,19 @@ public class MilkBlossom : MonoBehaviour {
             {
                 tileObject.GetComponent<Renderer>().material.color = Color.white;
             }
+        }
+        public bool GetHighlight()
+        {
+            return highlighted;
+        }
+
+        public void SetOccupied(bool occupyFlag)
+        {
+            occupied = occupyFlag;
+        }
+        public bool GetOccupied()
+        {
+            return occupied;
         }
     }
 
@@ -190,7 +205,6 @@ public class MilkBlossom : MonoBehaviour {
                         {
                             if (pool[k] > 0)
                             {
-                                Debug.Log("Adding point to tile " + chosenTile.tileObject + "  " + k);
                                 pool[k] -= 1;
                                 // this tile gets 1 point
                                 chosenTile.points = k + 1;
@@ -211,8 +225,6 @@ public class MilkBlossom : MonoBehaviour {
         public void CreateGrid(GameObject hexTile)
         {
             tileCount = x * y;
-
-
 
             // create tiles themselves
             for ( int i = 0; i < x; i++)
@@ -244,10 +256,11 @@ public class MilkBlossom : MonoBehaviour {
                 }
             }
         }
-        public void AllocatePlayers()
+        public void AllocatePlayers(GameObject playerObject)
         {
             // legitimate tiles are the ones with one point only
             List<tile> validAllocationTiles = new List<tile>();
+
             foreach (tile t in tileList)
             {
                 if (t.points == 1)
@@ -258,8 +271,24 @@ public class MilkBlossom : MonoBehaviour {
 
             for (int p = 1; p <= playerCount; p++)
             {
-                tile chosenTile = validAllocationTiles[Random.Range(0, validAllocationTiles.Count)];
-
+                int attempts = 20;
+                while (true)
+                {
+                    attempts -= 1;
+                    if(attempts < 0)
+                    {
+                        break;
+                    }
+                    tile chosenTile = validAllocationTiles[Random.Range(0, validAllocationTiles.Count)];
+                    if (!chosenTile.GetOccupied())
+                    {
+                        // allocate player on tile
+                        Debug.Log("allocating player");
+                        GameObject newPlayer = (GameObject)Instantiate(playerObject, chosenTile.tileObject.transform.position + new Vector3(0, 0, -0.5f), Quaternion.identity);
+                        chosenTile.SetOccupied(true);
+                        break;
+                    }
+                }
             }
 
 
@@ -383,10 +412,7 @@ public class MilkBlossom : MonoBehaviour {
         directions[4] = new Vector3(-1,  0, +1);
         directions[5] = new Vector3( 0, -1, +1);
 
-        foreach(tile t in tileList )
-        {
-            Debug.Log(t.cubePosition);
-        }
+    
 	}
     // Update is called once per frame
     void Update()
@@ -462,6 +488,7 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.playerCount = players;
 
         liveHexGrid.CreateHexShapedGrid(hexTile);
+        liveHexGrid.AllocatePlayers(playerObject);
     }
 
     void LinearHighlighter(tile sourceTile, int direction, int range)
@@ -473,10 +500,10 @@ public class MilkBlossom : MonoBehaviour {
         // first, unhighlight all tiles
         foreach (tile t in tileList)
         {
-            t.setHighlight(false);
+            t.SetHighlight(false);
         }
 
-        sourceTile.setHighlight(true);
+        sourceTile.SetHighlight(true);
 
         for (int r = 1; r <= range; r++)
         {
@@ -487,7 +514,7 @@ public class MilkBlossom : MonoBehaviour {
             {
                 if(t.cubePosition == sourceTile.cubePosition + relativeTargetPosition)
                 {
-                    t.setHighlight(true);
+                    t.SetHighlight(true);
                 }
             }
 
