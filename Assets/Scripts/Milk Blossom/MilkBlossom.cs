@@ -95,23 +95,70 @@ public class MilkBlossom : MonoBehaviour {
         public int y = 5;
         public float radius = 0.5f;
         public bool useAsInnerCircleRadius = true;
-        
+        int tileCount;
+
         private float offsetX, offsetY;
 
         // list of positions
         new Vector3 maxBounds = new Vector3(0, 0, 0);
         new Vector3 minBounds = new Vector3(0, 0, 0);
 
+        public void CreateHexShapedGrid(GameObject hexTile, int gridRadius = 3)
+        {
+
+            int[] pointsPool = new int[3];
+            pointsPool[0] += tileCount - pointsPool[0] - pointsPool[1] - pointsPool[2];
+
+
+        }
+
+        public void AllocatePoints(int[] pool)
+        {
+            for (int i = 0; i < pool.Length; i++)
+            // if there are 60 tiles, 10 are triples, 20 are doubles and 30 are singles, i.e. 1/6, 1/3 and 1/2
+            {
+                pool[i] = Mathf.FloorToInt(tileCount / (2 + i * i));
+            }
+            List<tile> choosableTiles = new List<tile>(tileList);
+            for (int t = 0; t < tileList.Count; t++)
+            {
+
+                // randomly choose tile that hasn't been chosen before
+                tile chosenTile = choosableTiles[Random.Range(0, choosableTiles.Count - 1)];
+
+                // create points in tiles
+                while (chosenTile.points <= 0)
+                {
+
+                    int attempts = 100;
+                    int r = Random.Range(0, pool.Length);
+                    for (int k = 0; k < pool.Length; k++)
+                    {
+                        if (r == k)
+                        {
+                            if (pool[k] > 0)
+                            {
+                                Debug.Log("Adding point to tile " + chosenTile.tileObject + "  " + k);
+                                pool[k] -= 1;
+                                // this tile gets 1 point
+                                chosenTile.points = k + 1;
+                                // AddDebugText(chosenTile.tileObject, chosenTile.points.ToString());
+                                choosableTiles.Remove(chosenTile);
+
+                            }
+                        }
+                    }
+                    attempts -= 1;
+                    if (attempts < 0)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
         public void CreateGrid(GameObject hexTile)
         {
-            int tileCount = x * y;
-            int[] pointsPool = new int[3];
-            for (int i = 0; i < pointsPool.Length; i++)
-                // if there are 60 tiles, 10 are triples, 20 are doubles and 30 are singles, i.e. 1/6, 1/3 and 1/2
-            {
-                pointsPool[i] = Mathf.FloorToInt(tileCount / (2 + i * i ) );
-            }
-            pointsPool[0] += tileCount - pointsPool[0] - pointsPool[1] - pointsPool[2];
+            tileCount = x * y;
 
             float unitLength = (useAsInnerCircleRadius)? (radius / Mathf.Sqrt(3) / 2) : radius;
 
@@ -147,54 +194,10 @@ public class MilkBlossom : MonoBehaviour {
 
                 }
             }
-
-            List<tile> choosableTiles = new List<tile>(tileList);
-            for (int t = 0; t < tileList.Count; t++)
-            {
-   
-                // randomly choose tile that hasn't been chosen before
-                
-                tile chosenTile = choosableTiles[Random.Range(0, choosableTiles.Count - 1)];
-
-                // create points in tiles
-                while (chosenTile.points <= 0)
-                {
-   
-                    int attempts = 100;
-                    int r = Random.Range(0, pointsPool.Length);
-                    for (int k = 0; k < pointsPool.Length; k++)
-                    {
-                        if (r == k)
-                        {
-                            if (pointsPool[k] > 0)
-                            {
-                                Debug.Log("Adding point to tile " + chosenTile.tileObject +"  "+ k);
-                                pointsPool[k] -= 1;
-                                // this tile gets 1 point
-                                chosenTile.points = k + 1;
-                               // AddDebugText(chosenTile.tileObject, chosenTile.points.ToString());
-                                choosableTiles.Remove(chosenTile);
-      
-                            }
-                        }
-                    }
-                    attempts -= 1;
-                    if (attempts < 0)
-                    {
-                        break;
-                    }
-                }
- 
-            }
-
-            // simply number tiles
-            for (int i = 0; i < tileList.Count - 1; i++)
-            {
-                AddDebugText(tileList[i].tileObject, i.ToString());
-            }
-  
-          
         }
+
+          
+        
 
         void AddDebugText(GameObject targetObject, string inputText)
         {
@@ -248,6 +251,41 @@ public class MilkBlossom : MonoBehaviour {
 
             return cubeCoordinates;
         }
+
+        public void DisplayIndices()
+        {
+            // simply number tiles
+            for (int i = 0; i < tileList.Count - 1; i++)
+            {
+                AddDebugText(tileList[i].tileObject, i.ToString());
+            }
+        }
+        public void DisplayCoords()
+        {
+            // cubic coords
+            for (int i = 0; i < tileList.Count - 1; i++)
+            {
+                string coordText = tileList[i].cubePosition.x.ToString() + ", " + tileList[i].cubePosition.y.ToString() + ", " + tileList[i].cubePosition.z.ToString();
+                AddDebugText(tileList[i].tileObject, coordText);
+            }
+        }
+        public void DisplayPoints()
+        {
+            // points
+            for (int i = 0; i < tileList.Count - 1; i++)
+            {
+                AddDebugText(tileList[i].tileObject, tileList[i].points.ToString());
+            }
+        }
+
+        public void DisplayClear()
+        {
+            // clear all
+            for (int i = 0; i < tileList.Count - 1; i++)
+            {
+                AddDebugText(tileList[i].tileObject, "");
+            }
+        }
     }
     
 	// Use this for initialization
@@ -270,7 +308,25 @@ public class MilkBlossom : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKey(KeyCode.H))
+        if(Input.GetKey(KeyCode.F1))
+        {
+            liveHexGrid.DisplayIndices();
+        }
+        if (Input.GetKey(KeyCode.F2))
+        {
+            liveHexGrid.DisplayCoords();
+        }
+        if (Input.GetKey(KeyCode.F3))
+        {
+            liveHexGrid.DisplayPoints();
+        }
+        if (Input.GetKey(KeyCode.F4))
+        {
+            liveHexGrid.DisplayClear();
+        }
+
+
+        if (Input.GetKey(KeyCode.H))
         {
             LinearHighlighter(tileList[15], 4, 5);
         }
