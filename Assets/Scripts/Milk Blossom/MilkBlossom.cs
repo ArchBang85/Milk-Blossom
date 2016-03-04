@@ -67,16 +67,17 @@ public class MilkBlossom : MonoBehaviour {
         Vector3 cubePosition;
         Vector2 offsetPosition;
         public tile playerTile;
+        public GameObject playerGameObject;
 
     }
 
-    class tile
+    public class tile
     {
         public Vector3 cubePosition;
         public Vector2 offsetPosition;
         [Range(1, 3)]
         public int points;
-        public bool active = true;
+        bool active = true;
         public bool occupied = false;
         bool highlighted = false;
         public GameObject tileObject;
@@ -111,6 +112,25 @@ public class MilkBlossom : MonoBehaviour {
         {
             return occupied;
         }
+
+        public void SetActive(bool activeFlag)
+        {
+            active = activeFlag;
+
+            if(!active)
+            {
+                // what should happen when the tile is deactivated?
+                tileObject.GetComponent<Renderer>().enabled = false;
+            }
+                   
+
+        }
+
+        public bool GetActive()
+        {
+            return active;
+        }
+
     }
     static IEnumerator basicDelay(float delay)
     {
@@ -264,10 +284,13 @@ public class MilkBlossom : MonoBehaviour {
                         playerList.Add(pl);
                         pl.playerNumber = p;
                         pl.playerTile = chosenTile;
+                        pl.playerGameObject = newPlayer;
                         break;
                     }
                 }
             }
+
+
 
 
         }
@@ -306,6 +329,14 @@ public class MilkBlossom : MonoBehaviour {
                 }
             }
         }
+        
+        public void leaveTile(tile tileToLeave)
+        {
+            tileToLeave.SetOccupied(false);
+            tileToLeave.SetActive(false);
+
+        }
+
         void AddDebugText(GameObject targetObject, string inputText)
         {
             try
@@ -499,7 +530,18 @@ public class MilkBlossom : MonoBehaviour {
                 currentDir = 1;
             }
 
-            LinearHighlighter(activeTile, currentDir, targetRange);
+            tile targetTile = LinearHighlighter(activeTile, currentDir, targetRange);
+
+            if (Input.GetKey(KeyCode.Return))
+            {
+                if (activeTile != targetTile)
+                {
+                    
+                    MakeMove(playerList[activePlayer - 1], targetTile);
+                }
+            }
+
+            
         }
     }
 
@@ -531,6 +573,7 @@ public class MilkBlossom : MonoBehaviour {
         Debug.Log("Switced to " + s);
     }
 
+
     static tile SelectPlayer(int playerNumber = 1)
     {
         Debug.Log("playernumber" + playerNumber);
@@ -546,7 +589,7 @@ public class MilkBlossom : MonoBehaviour {
         return null;
     }
 
-    void LinearHighlighter(tile sourceTile, int direction, int range)
+    tile LinearHighlighter(tile sourceTile, int direction, int range)
     {
         Mathf.Clamp((float)direction, 0, 5);
 
@@ -566,7 +609,7 @@ public class MilkBlossom : MonoBehaviour {
 
         }
 
-
+        tile targetTile = sourceTile;
         for (int r = 1; r <= range; r++)
         {
             Vector3 relativeTargetPosition = directions[direction] * r;
@@ -574,19 +617,27 @@ public class MilkBlossom : MonoBehaviour {
             // does the tile exist
             foreach (tile t in tileList)
             {
-                if(t.cubePosition == sourceTile.cubePosition + relativeTargetPosition)
+                if(t.cubePosition == sourceTile.cubePosition + relativeTargetPosition && t.GetActive())
                 {
                     t.SetHighlight(true);
+                    targetTile = t;
                 }
             }
 
         }
-
+        return targetTile;
     }
 
-    void MakeMove(GameObject unit, tile targetTile)
+    void MakeMove(player p, tile targetTile)
     {
-        unit.transform.Translate(targetTile.tileObject.transform.position);
+        // leave current tile
+        liveHexGrid.leaveTile(p.playerTile);
+
+        // move player unit to new tile
+        p.playerGameObject.transform.Translate(new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z));
+
+        // set new tile as the active tile
+        activeTile = targetTile;
     }
 
     Vector3 PseudoAIMove(GameObject unit)
