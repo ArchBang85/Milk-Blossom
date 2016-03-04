@@ -685,7 +685,17 @@ public class MilkBlossom : MonoBehaviour {
 
     void UpdateScores()
     {
-        
+        for(int p = 0; p < players; p++)
+        {
+            if (p < 2)
+            {
+                scoreObjects[p].transform.GetComponent<Text>().text = "P" + (p + 1).ToString() + "\n" + playerList[p].GetPoints().ToString();
+            }
+            else
+            {
+                scoreObjects[p].transform.GetComponent<Text>().text = playerList[p].GetPoints().ToString() + "\nP" + (p + 1).ToString();
+            }
+        }
     }
 
 
@@ -705,6 +715,9 @@ public class MilkBlossom : MonoBehaviour {
 
         activeTile = targetTile;
         activeTile.SetOccupied(true);
+
+        // update scores
+        UpdateScores();
     }
 
     Vector3 PseudoAIMove(GameObject unit)
