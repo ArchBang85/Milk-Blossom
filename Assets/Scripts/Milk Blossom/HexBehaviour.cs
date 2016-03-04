@@ -11,12 +11,12 @@ public class HexBehaviour : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if(myTime < 2f)
+        if(myTime < 2.1f)
             myTime += Time.deltaTime;
 
         if (!paused)
         {
-            if (myTime > 2f)
+            if (myTime > 2.1f)
             {
                 iTween.Pause(this.gameObject);
                 transform.position = new Vector3(transform.position.x, transform.position.y, 0);

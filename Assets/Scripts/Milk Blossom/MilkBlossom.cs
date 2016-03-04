@@ -196,7 +196,7 @@ public class MilkBlossom : MonoBehaviour {
 
             // do remaining setup things within ienumerator to ensure sequence is correct
             AllocatePoints();
-            yield return new WaitForSeconds(1.8f);
+            yield return new WaitForSeconds(1.6f);
             AllocatePlayers(playerObj);
             activeTile = SelectPlayer(1);
 
@@ -484,16 +484,7 @@ public class MilkBlossom : MonoBehaviour {
                 // DEBUG TURN SWITCHING
                 if (Input.GetKey(KeyCode.N))
                 {
-                    if (activePlayer < players)
-                    {
-                        activePlayer += 1;
-                    }
-                    else
-                    {
-                        activePlayer = 1;
-                    }
-                    activeTile = SelectPlayer(activePlayer);
-
+                    IncrementActivePlayer();
                 }
 
                 if (Input.GetKey(KeyCode.W))
@@ -542,6 +533,7 @@ public class MilkBlossom : MonoBehaviour {
                     {
 
                         MakeMove(playerList[activePlayer - 1], targetTile);
+                        IncrementActivePlayer();
                     }
                 }
             }
@@ -550,6 +542,15 @@ public class MilkBlossom : MonoBehaviour {
         }
     }
 
+    void IncrementActivePlayer()
+    {
+        activePlayer++;
+        if (activePlayer > players)
+        {
+            activePlayer = 1;
+        }
+        activeTile = SelectPlayer(activePlayer);
+    }
     void InitGame()
     {
         // create grid, allocate points and allocate players
@@ -563,11 +564,9 @@ public class MilkBlossom : MonoBehaviour {
 
         StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile));
         StartCoroutine(basicDelay(1.0f));
-        // highlight starting player
-
 
         // once game is setup, set it to live
-        StartCoroutine(switchState(states.live, 4.0f));
+        StartCoroutine(switchState(states.live, 3.0f));
         
     }
 
