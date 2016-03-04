@@ -42,13 +42,19 @@ public class MilkBlossom : MonoBehaviour {
     public float hexRadius = 0.5f;
     public bool useAsInnerCircleRadius = true;
     static List<tile> tileList = new List<tile>();
-    
+    tile activeTile;
     private int targetRange = 2;
 
     private enum states {starting, planning, moving};
     states currentState = states.starting;
-
     Vector3[] directions = new Vector3[6];
+    [Range(0, 5)]
+    int currentDir;
+    // player info
+    [Range(1,4)]
+    int players;
+    
+
     class player
     {
         [Range(1,4)]
@@ -122,6 +128,7 @@ public class MilkBlossom : MonoBehaviour {
                 {
 
                     tile newTile = new tile();
+                    tileCount++;
                     newTile.cubePosition = new Vector3(q, r, -q- r);
                     // insert hex
                     Vector2 offset = CubeToOddR(newTile.cubePosition);
@@ -146,35 +153,35 @@ public class MilkBlossom : MonoBehaviour {
 
             }
 
-
-
-            int[] pointsPool = new int[3];
-            pointsPool[0] += tileCount - pointsPool[0] - pointsPool[1] - pointsPool[2];
-
+            AllocatePoints();
 
 
 
         }
 
-        public void AllocatePoints(int[] pool)
+        public void AllocatePoints()
         {
+
+            int[] pool = new int[3];
             for (int i = 0; i < pool.Length; i++)
             // if there are 60 tiles, 10 are triples, 20 are doubles and 30 are singles, i.e. 1/6, 1/3 and 1/2
             {
                 pool[i] = Mathf.FloorToInt(tileCount / (2 + i * i));
             }
+            pool[0] += tileCount - pool[0] - pool[1] - pool[2];
+
             List<tile> choosableTiles = new List<tile>(tileList);
             for (int t = 0; t < tileList.Count; t++)
             {
 
                 // randomly choose tile that hasn't been chosen before
                 tile chosenTile = choosableTiles[Random.Range(0, choosableTiles.Count - 1)];
-
+                int attempts = 20;
                 // create points in tiles
                 while (chosenTile.points <= 0)
                 {
 
-                    int attempts = 100;
+         
                     int r = Random.Range(0, pool.Length);
                     for (int k = 0; k < pool.Length; k++)
                     {
@@ -342,7 +349,12 @@ public class MilkBlossom : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
+
+
         gridGenerator();
+
+        //hax
+        activeTile = tileList[18];
 
         directions[0] = new Vector3(+1, -1,  0);
         directions[1] = new Vector3(+1,  0, -1);
@@ -359,6 +371,9 @@ public class MilkBlossom : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+
+        // CONTROLS
+        // debug visualisations 
         if(Input.GetKey(KeyCode.F1))
         {
             liveHexGrid.DisplayIndices();
@@ -376,12 +391,6 @@ public class MilkBlossom : MonoBehaviour {
             liveHexGrid.DisplayClear();
         }
 
-
-        if (Input.GetKey(KeyCode.H))
-        {
-            LinearHighlighter(tileList[15], 4, 5);
-        }
-
         if(Input.GetKey(KeyCode.W))
         {
             targetRange++;
@@ -394,32 +403,33 @@ public class MilkBlossom : MonoBehaviour {
         // Rudimentary highlight controls
         if(Input.GetKey(KeyCode.Q))
         {
-            LinearHighlighter(tileList[15], 2 ,  targetRange);
+            currentDir = 4;
         }
 
         if (Input.GetKey(KeyCode.E))
         {
-            LinearHighlighter(tileList[15], 1, targetRange);
+            currentDir = 5;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            LinearHighlighter(tileList[15], 3, targetRange);
+            currentDir = 3;
+
         }
         if (Input.GetKey(KeyCode.D))
         {
-            LinearHighlighter(tileList[15], 0, targetRange);
+            currentDir = 0;
         }
         if (Input.GetKey(KeyCode.Z))
         {
-            LinearHighlighter(tileList[15], 4, targetRange);
+            currentDir = 2;
         }
         if (Input.GetKey(KeyCode.C))
         {
-            LinearHighlighter(tileList[15], 5, targetRange);
+            currentDir = 1;
         }
 
-
+        LinearHighlighter(activeTile, currentDir, targetRange);
     }
 
     void gridGenerator()
