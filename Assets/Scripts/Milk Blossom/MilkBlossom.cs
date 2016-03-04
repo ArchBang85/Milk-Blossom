@@ -49,10 +49,10 @@ public class MilkBlossom : MonoBehaviour {
     states currentState = states.starting;
     Vector3[] directions = new Vector3[6];
     [Range(0, 5)]
-    int currentDir;
+    private int currentDir;
     // player info
     [Range(1,4)]
-    int players;
+    private int players = 3;
     
 
     class player
@@ -60,7 +60,7 @@ public class MilkBlossom : MonoBehaviour {
         [Range(1,4)]
         int Playernumber;
         bool AI = true;
-      
+        
         Vector3 position;
 
 
@@ -102,6 +102,7 @@ public class MilkBlossom : MonoBehaviour {
         public float radius = 0.5f;
         public bool useAsInnerCircleRadius = true;
         int tileCount;
+        public int playerCount = 3;
 
         private float offsetX, offsetY;
 
@@ -243,7 +244,26 @@ public class MilkBlossom : MonoBehaviour {
                 }
             }
         }
+        public void AllocatePlayers()
+        {
+            // legitimate tiles are the ones with one point only
+            List<tile> validAllocationTiles = new List<tile>();
+            foreach (tile t in tileList)
+            {
+                if (t.points == 1)
+                {
+                    validAllocationTiles.Add(t);
+                }
+            }
 
+            for (int p = 1; p <= playerCount; p++)
+            {
+                tile chosenTile = validAllocationTiles[Random.Range(0, validAllocationTiles.Count)];
+
+            }
+
+
+        }
           
         
 
@@ -439,6 +459,7 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.y = hexGridy;
         liveHexGrid.radius = hexRadius;
         liveHexGrid.useAsInnerCircleRadius = useAsInnerCircleRadius;
+        liveHexGrid.playerCount = players;
 
         liveHexGrid.CreateHexShapedGrid(hexTile);
     }
