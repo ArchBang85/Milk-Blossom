@@ -461,7 +461,7 @@ public class MilkBlossom : MonoBehaviour {
             turnCooldown -= Time.deltaTime;
             if (turnCooldown < 0)
             {
-                turnCooldown = 0.06f;
+                turnCooldown = 0.1f;
                 // CONTROLS
                 // debug visualisations 
                 if (Input.GetKey(KeyCode.F1))
