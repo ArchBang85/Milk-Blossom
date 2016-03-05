@@ -137,6 +137,7 @@ public class MilkBlossom : MonoBehaviour {
         public Vector2 offsetPosition;
         [Range(1, 3)]
         public int points;
+        public int index;
         bool active = true;
         public bool occupied = false;
         bool highlighted = false;
@@ -474,6 +475,7 @@ public class MilkBlossom : MonoBehaviour {
             // simply number tiles
             for (int i = 0; i < tileList.Count; i++)
             {
+                tileList[i].index = 0;
                 AddDebugText(tileList[i].tileObject, i.ToString());
             }
         }
@@ -621,6 +623,11 @@ public class MilkBlossom : MonoBehaviour {
                 }
 
                 tile targetTile = LinearHighlighter(activeTile, currentDir, targetRange);
+                if(Input.GetKey(KeyCode.T))
+                {
+                    PseudoAIMove(playerList[activePlayer - 1]);
+                }
+                      
 
                 if (Input.GetKey(KeyCode.Return))
                 {
@@ -906,21 +913,64 @@ public class MilkBlossom : MonoBehaviour {
                         if(tileList[i].GetActive() && !tileList[i].GetOccupied())
                         {
                             potentialTiles.Add(tileList[i]);
-                            tileValues.Add(tileList[i].points);
+                            // some weighting for guaranteed points from next move
+                            tileValues.Add(tileList[i].points * 4);
                         }
                     }    
                 }
             }
         }
-        // for each direction, go along the grid for as far as possible
 
+        // starting thinking of the move +1 
+        // go through all promising tiles and add up diagonals' points
 
-        // for each tile check the points it contains
+        for (int t = 0; t < potentialTiles.Count; t++)
+        {
+            // for each direction
+            for (int d = 0; d < directions.Length; d++)
+            {
+                // for each tile in range
+                for (int r = 1; r <= maxRange; r++)
+                {
+                    Vector3 relativeDir = directions[d] * r;
 
-        // 
+                    // check the tile by cycling all tiles
+                    for (int i = 0; i < tileList.Count; i++)
+                    {
+                        if (tileList[i].cubePosition == potentialTiles[t].cubePosition + relativeDir)
+                        {
+                            if (tileList[i].GetActive() && !tileList[i].GetOccupied())
+                            {
+                                // some weighting for guaranteed points from next move
+                                tileValues[t] += tileList[i].points;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
+        List<tile> highValueTiles = new List<tile>();
+        int highestValue = 0;
+        for(int j = 0; j < tileValues.Count; j++)
+        {
+            if(tileValues[j] > highestValue)
+            {
+                highestValue = tileValues[j];
+            }
+        }
+        for (int j = 0; j < tileValues.Count; j++)
+        {
+            if (tileValues[j] == highestValue)
+            {
+                highValueTiles.Add(potentialTiles[j]);
+            }
+        }
 
-        return target; 
+        // finally decide at random from best valued tiles
+        targetTile = highValueTiles[Random.Range(0, highValueTiles.Count)];
+        Debug.Log("My name is Player" + p.playerNumber.ToString() + " and I'd like to move to tile " + targetTile.index.ToString());
+
     }
 
     Vector3 CubeDirection(int dir)
