@@ -283,7 +283,9 @@ public class MilkBlossom : MonoBehaviour {
             AllocatePoints();
             yield return new WaitForSeconds(1.4f);
             AllocatePlayers(playerObj);
+            //// debug temp
 
+            DisplayPoints();
             // select starting player
             activeTile = SelectPlayer(0);
 
@@ -575,14 +577,14 @@ public class MilkBlossom : MonoBehaviour {
 
         if(!ValidMoves(playerList[activePlayer]))
         {
-            Debug.Log("No valid moves for player " + activePlayer.ToString());
+            Debug.Log("No valid moves for player " + (activePlayer + 1).ToString());
             if (playerList[activePlayer].GetAlive())
             {
                 // can't make moves
                 // player is taken out of circulation
                 playerList[activePlayer].SetAlive(false);
                 playerList[activePlayer].DeathThroes();
-            
+            }
                 // does this mean all players are dead?
                 if (CheckPlayersAlive())
                 {
@@ -593,7 +595,7 @@ public class MilkBlossom : MonoBehaviour {
                     // transition to end state
                     StartCoroutine(switchState(states.ending, 2.0f));
                 }
-            }
+            
         }
 
 /*
@@ -695,7 +697,7 @@ public class MilkBlossom : MonoBehaviour {
             turnCooldown -= Time.deltaTime;
             if (turnCooldown < 0)
             {
-                turnCooldown = 2f;
+                turnCooldown = 0.75f;
                 // CONTROLS
                 // debug visualisations 
                 if (Input.GetKey(KeyCode.F1))
@@ -813,11 +815,22 @@ public class MilkBlossom : MonoBehaviour {
 
             }
 
-            if (currentState == states.ending)
-            {
-                endText.transform.GetComponent<Text>().text = "ENDED";
-            }
+        }
 
+        if (currentState == states.ending)
+        {
+            int hiPlayer = 0;
+            int hiScore = 0;
+            for (int i = 0; i < playerList.Count; i++)
+            {
+                if (playerList[i].GetPoints() > hiScore)
+                {
+                    hiPlayer = i;
+                } 
+                
+            }
+                  
+            endText.transform.GetComponent<Text>().text = "ENDED\nPlayer " + hiPlayer.ToString();
         }
     }
 
@@ -1009,7 +1022,7 @@ public class MilkBlossom : MonoBehaviour {
 
         currentState = states.live;
         // Only once object has moved, do we increment to the next player
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.2f);
         IncrementActivePlayer();
 
     }
@@ -1023,7 +1036,7 @@ public class MilkBlossom : MonoBehaviour {
             if (currentState == states.live)
             {
                 currentState = states.paused;
-                switchState(states.moving, 2.0f);
+                switchState(states.moving, 0.2f);
                 targetTile = PseudoAIMove(p);
                 MakeMove(p, targetTile);
             }
