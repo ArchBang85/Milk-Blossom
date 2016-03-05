@@ -85,7 +85,7 @@ public class MilkBlossom : MonoBehaviour {
     [Range(1,4)]
     private int players = 3;
     static List<player> playerList = new List<player>();
-    private int activePlayer = 1;
+    public int activePlayer = 1;
 
     public class player
     {
@@ -398,7 +398,12 @@ public class MilkBlossom : MonoBehaviour {
         {
             tileToLeave.SetOccupied(false);
             tileToLeave.SetActive(false);
+        }
 
+        public void enterTile(tile tileToEnter)
+        {
+
+            tileToEnter.SetOccupied(true);
         }
 
         void AddDebugText(GameObject targetObject, string inputText)
@@ -647,17 +652,18 @@ public class MilkBlossom : MonoBehaviour {
         }
         activeTile = SelectPlayer(activePlayer);
 
-        if(!ValidMoves(playerList[activePlayer]))
+        if(!ValidMoves(playerList[activePlayer-1]))
         {
             // can't make moves
             // player is taken out of circulation
-            playerList[activePlayer].SetAlive(false);
-            playerList[activePlayer].DeathThroes();
+            playerList[activePlayer - 1].SetAlive(false);
+            playerList[activePlayer - 1].DeathThroes();
             // does this mean all players are dead?
             if (CheckPlayersAlive())
             {
                 IncrementActivePlayer();
             }
+            else
             {
                 // transition to end state
                 StartCoroutine(switchState(states.ending, 2.0f));
@@ -740,7 +746,7 @@ public class MilkBlossom : MonoBehaviour {
                 if (t.cubePosition == p.playerTile.cubePosition + directions[d])
                 {
                     if (!t.GetOccupied() && t.GetActive())
-                    {
+                    {            
                         return true;
                     }
                 }
@@ -849,9 +855,8 @@ public class MilkBlossom : MonoBehaviour {
 
         // set player tile as the target tile
         p.playerTile = targetTile;
-
         activeTile = targetTile;
-        activeTile.SetOccupied(true);
+        liveHexGrid.enterTile(activeTile);
 
         // update scores
         UpdateScores();
