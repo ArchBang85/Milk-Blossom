@@ -57,7 +57,7 @@ public class MilkBlossom : MonoBehaviour {
     // player who can't move does a shaky-shake and perishes
     public static Color[] highlightColorList = new Color[3]; // 0 for source, 1 for midway and 2 for target
     public Color[] highlightColorsListPublic;
-
+    public GameObject bigWheel;
     public GameObject hexTile;
     hexGrid liveHexGrid;
     public int hexGridx = 5;
@@ -73,7 +73,7 @@ public class MilkBlossom : MonoBehaviour {
     private GameObject timerBar;
 
     public GameObject endText;
-
+    Camera mainCam;
     private enum states {starting, planning, live, moving, ending};
     states currentState = states.starting;
     Vector3[] directions = new Vector3[6];
@@ -511,6 +511,7 @@ public class MilkBlossom : MonoBehaviour {
         {
             highlightColorList[c] = highlightColorsListPublic[c];
         }
+        mainCam = GameObject.Find("Main Camera").GetComponent<Camera>();
 
         timerBar = GameObject.Find("TimerBar");
 
@@ -630,6 +631,17 @@ public class MilkBlossom : MonoBehaviour {
                         IncrementActivePlayer();
                     }
                 }
+
+                // orient big wheel with mouse
+                Vector2 mousePos;
+                Vector3 screenPos;
+                mousePos = Input.mousePosition;
+
+                screenPos = mainCam.ScreenToWorldPoint(Input.mousePosition);//new Vector3(mousePos.x, mousePos.y, bigWheel.transform.position.z - mainCam.transform.position.z));
+                                                                            //Rotates toward the mouse
+                                                                            // bigWheel.transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2((mousePos.y - bigWheel.transform.position.y), (mousePos.x - bigWheel.transform.position.x)) * Mathf.Rad2Deg - 90);
+                bigWheel.transform.rotation = Quaternion.LookRotation(Vector3.forward, mousePos);
+
             }
 
 
@@ -654,10 +666,14 @@ public class MilkBlossom : MonoBehaviour {
 
         if(!ValidMoves(playerList[activePlayer-1]))
         {
-            // can't make moves
-            // player is taken out of circulation
-            playerList[activePlayer - 1].SetAlive(false);
-            playerList[activePlayer - 1].DeathThroes();
+            if (playerList[activePlayer - 1].GetAlive())
+            {
+                // can't make moves
+                // player is taken out of circulation
+                playerList[activePlayer - 1].SetAlive(false);
+                playerList[activePlayer - 1].DeathThroes();
+            }
+
             // does this mean all players are dead?
             if (CheckPlayersAlive())
             {
@@ -862,15 +878,40 @@ public class MilkBlossom : MonoBehaviour {
         UpdateScores();
     }
 
-    Vector3 PseudoAIMove(GameObject unit)
+    void PseudoAIMove(player p)
     {
-        Vector3 target = new Vector3(0, 0, 0);
-        List<GameObject> potentialTiles = new List<GameObject>();
+
+        tile targetTile;
+        List<tile> potentialTiles = new List<tile>();
+        List<int> tileValues = new List<int>();
+
+        int maxRange = hexGridRadius * 2;
 
         // brute forcing it
         // unit contains own position?
 
-
+        // for every direction
+        for (int d = 0; d < directions.Length; d++)
+        {
+            // for each tile in range
+            for (int r = 1; r <= maxRange; r++)
+            {
+                Vector3 relativeDir = directions[d] * r;
+                
+                // check the tile by cycling all tiles
+                for (int i = 0; i < tileList.Count; i++)
+                {
+                    if(tileList[i].cubePosition == p.playerTile.cubePosition + relativeDir)
+                    {
+                        if(tileList[i].GetActive() && !tileList[i].GetOccupied())
+                        {
+                            potentialTiles.Add(tileList[i]);
+                            tileValues.Add(tileList[i].points);
+                        }
+                    }    
+                }
+            }
+        }
         // for each direction, go along the grid for as far as possible
 
 
