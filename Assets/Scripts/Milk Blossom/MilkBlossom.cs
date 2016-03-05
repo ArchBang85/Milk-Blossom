@@ -133,6 +133,11 @@ public class MilkBlossom : MonoBehaviour {
 
             }
         }
+
+        public bool GetAI()
+        {
+            return AI;
+        }
     }
 
     public class tile
@@ -355,6 +360,7 @@ public class MilkBlossom : MonoBehaviour {
                         pl.playerTile = chosenTile;
                         pl.playerGameObject = newPlayer;
                         pl.playerWheelTransform = newPlayer.transform.FindChild("PlayerWheels");
+                        
                         break;
                     }
                 }
@@ -712,6 +718,13 @@ public class MilkBlossom : MonoBehaviour {
                 StartCoroutine(switchState(states.ending, 2.0f));
             }
         }
+
+        // if player is AI, do an AI move
+        if(playerList[activePlayer - 1].GetAI())
+        {
+            // 
+
+        }
        
     }
 
@@ -908,7 +921,6 @@ public class MilkBlossom : MonoBehaviour {
 
         // update scores
         UpdateScores();
-
         
     }
 
@@ -921,9 +933,9 @@ public class MilkBlossom : MonoBehaviour {
         Vector2 lookPos = targetPos - sourcePos;
         Quaternion rotation = Quaternion.LookRotation(Vector3.forward, lookPos);
         float r = 0;
-        float rStep = (1.0f / Vector3.Angle(lookPos, wheelChild.forward) * Time.fixedDeltaTime  * 10);
+        float rStep = (1.0f / Vector3.Angle(lookPos, wheelChild.forward) * Time.fixedDeltaTime  * 50);
 
-        while (r < 0.9f)
+        while (r < 0.5f)
         {
             r += rStep;
             wheelChild.rotation = Quaternion.Slerp(wheelChild.rotation, rotation, r);
@@ -931,10 +943,9 @@ public class MilkBlossom : MonoBehaviour {
         }
 
         Debug.Log("Rotation complete, now moving");
+         
 
-     //   wheelChild.rotation = rotation;               
-
-        float step = (1.0f / (sourcePos - targetPos).magnitude * Time.fixedDeltaTime);
+        float step = (1.0f / (sourcePos - targetPos).magnitude * Time.fixedDeltaTime * 2);
         float t = 0;
         while (t < 1.0f)
         {
@@ -953,12 +964,20 @@ public class MilkBlossom : MonoBehaviour {
 
     }
 
-    void AIMove()
+    void AIMove(player p)
     {
+        tile targetTile;
+        // see if a move is feasible
+        if(ValidMoves(p))
+        {
+            targetTile = PseudoAIMove(p);
+            MakeMove(p, targetTile);
+            IncrementActivePlayer();
+        }
 
     }
 
-    void PseudoAIMove(player p)
+    tile PseudoAIMove(player p)
     {
         tile targetTile;
         List<tile> potentialTiles = new List<tile>();
@@ -1050,7 +1069,7 @@ public class MilkBlossom : MonoBehaviour {
         // finally decide at random from best valued tiles
         targetTile = highValueTiles[Random.Range(0, highValueTiles.Count)];
         Debug.Log("My name is Player" + p.playerNumber.ToString() + " and I'd like to move to tile " + targetTile.index.ToString());
-
+        return targetTile;
     }
 
     Vector3 CubeDirection(int dir)
