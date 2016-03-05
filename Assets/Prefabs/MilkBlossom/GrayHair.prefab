@@ -45,6 +45,7 @@ GameObject:
   - 23: {fileID: 2326382}
   - 114: {fileID: 11460674}
   - 54: {fileID: 5435462}
+  - 75: {fileID: 7574020}
   m_Layer: 0
   m_Name: GrayHair
   m_TagString: Untagged
@@ -142,7 +143,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 136346}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.17364784, w: -0.98480785}
   m_LocalPosition: {x: -1.7, y: 2.6, z: -2}
   m_LocalScale: {x: 0.7480103, y: -0.1, z: 0.1}
   m_Children:
@@ -237,6 +238,17 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!75 &7574020
+ConstantForce:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 136346}
+  m_Enabled: 1
+  m_Force: {x: -4, y: 0, z: 0}
+  m_RelativeForce: {x: 0, y: 0, z: 0}
+  m_Torque: {x: 0, y: 0, z: 0}
+  m_RelativeTorque: {x: 0, y: 0, z: 0}
 --- !u!96 &9602296
 TrailRenderer:
   m_ObjectHideFlags: 1
