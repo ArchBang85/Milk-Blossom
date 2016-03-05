@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+
 
 public class MilkBlossom : MonoBehaviour {
 
@@ -36,6 +38,17 @@ public class MilkBlossom : MonoBehaviour {
     // tiles with three points available, in which case prioritise those for the move
     // if no three point tiles are available, do the same for two point tiles, 
     // else do it for one point tiles
+
+        // still to do:
+        // visual display of points on tiles, maybe as hebrew words
+        // visual display of units, need wheels and ideally an insect-bot like visual
+        // hex model
+        // end condition
+        // basic AI
+        // restart button                                                                       x
+        // third wheel functionality
+        // force feedback placeholders
+        // falling hair                                                                         
 
     // further ideas
     // just let players do as many turns as feasible, don't worry about isolated areas (though
@@ -473,6 +486,16 @@ public class MilkBlossom : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+
+        // RESET
+        if(Input.GetKey(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+        }
+
+
+
         timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(50);
         // timer before live
 
