@@ -72,7 +72,9 @@ public class MilkBlossom : MonoBehaviour {
     public GameObject[] scoreObjects;
     private GameObject timerBar;
 
-    private enum states {starting, planning, live, moving};
+    public GameObject endText;
+
+    private enum states {starting, planning, live, moving, ending};
     states currentState = states.starting;
     Vector3[] directions = new Vector3[6];
     [Range(0, 5)]
@@ -85,11 +87,12 @@ public class MilkBlossom : MonoBehaviour {
     static List<player> playerList = new List<player>();
     private int activePlayer = 1;
 
-    class player
+    public class player
     {
         [Range(1,4)]
         public int playerNumber;
         bool AI = false;
+        bool alive = true;
         Vector3 cubePosition;
         Vector2 offsetPosition;
         public tile playerTile;
@@ -102,6 +105,24 @@ public class MilkBlossom : MonoBehaviour {
         public int GetPoints()
         {
             return points;
+        }
+
+        public void SetAlive(bool t)
+        {
+            alive = t;
+        }
+        public bool GetAlive()
+        {
+            return alive;
+        }
+
+        public void DeathThroes()
+        {
+            // make some deathanimation happen
+            try
+            {
+                playerGameObject.transform.localScale *= 2.0f;
+            }
         }
     }
 
@@ -601,9 +622,16 @@ public class MilkBlossom : MonoBehaviour {
                 }
             }
 
+
+            if(currentState == states.ending)
+            {
+                endText.GetComponent<Text>().text = "ENDED";
+            }
             
         }
     }
+
+
 
     void IncrementActivePlayer()
     {
@@ -613,7 +641,38 @@ public class MilkBlossom : MonoBehaviour {
             activePlayer = 1;
         }
         activeTile = SelectPlayer(activePlayer);
+
+        if(!ValidMoves(playerList[activePlayer]))
+        {
+            // can't make moves
+            // player is taken out of circulation
+            playerList[activePlayer].SetAlive(false);
+            playerList[activePlayer].DeathThroes();
+            // does this mean all players are dead?
+            if (CheckPlayersAlive())
+            {
+                IncrementActivePlayer();
+            }
+            {
+                // transition to end state
+                StartCoroutine(switchState(states.ending, 2.0f));
+            }
+        }
+       
     }
+
+    private bool CheckPlayersAlive()
+    {
+        for (int p = 0; p < players; p++)
+        {
+            if(playerList[p].GetAlive())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     IEnumerator SetupPlayers()
     {
 
@@ -657,9 +716,33 @@ public class MilkBlossom : MonoBehaviour {
 
     IEnumerator switchState(states s, float delay)
     {
-        yield return new WaitForSeconds(delay);
+ 
         currentState = s;
+        yield return new WaitForSeconds(delay);
         Debug.Log("Switced to " + s);
+
+    }
+
+    // if switching to player, check if any valid moves are available
+    public bool ValidMoves(player p)
+    {
+        for (int d = 0; d < directions.Length; d++)
+        {
+            foreach (tile t in tileList)
+            {
+                // is there a tile that sits one step in this direction anywhere on the board that
+                // is both active and unoccupied
+                if (t.cubePosition == p.playerTile.cubePosition + directions[d])
+                {
+                    if (!t.GetOccupied() && t.GetActive())
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 
