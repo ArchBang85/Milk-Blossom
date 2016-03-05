@@ -830,7 +830,7 @@ public class MilkBlossom : MonoBehaviour {
                 
             }
                   
-            endText.transform.GetComponent<Text>().text = "ENDED\nPlayer " + hiPlayer.ToString();
+            endText.transform.GetComponent<Text>().text = "ENDED\nPlayer " + hiPlayer.ToString() + "\nWins";
         }
     }
 
