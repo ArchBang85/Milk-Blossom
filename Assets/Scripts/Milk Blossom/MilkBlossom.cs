@@ -55,7 +55,7 @@ public class MilkBlossom : MonoBehaviour {
     private int targetRange = 2;
     private float turnCooldown = 0.5f;
     public GameObject[] scoreObjects;
-
+    private GameObject timerBar;
 
     private enum states {starting, planning, live, moving};
     states currentState = states.starting;
@@ -457,6 +457,7 @@ public class MilkBlossom : MonoBehaviour {
     
 	// Use this for initialization
 	void Start () {
+        timerBar = GameObject.Find("TimerBar");
 
         InitGame();
 
@@ -472,7 +473,7 @@ public class MilkBlossom : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-
+        timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(50);
         // timer before live
 
         if (currentState == states.live)
