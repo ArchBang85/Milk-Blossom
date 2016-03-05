@@ -100,6 +100,7 @@ public class MilkBlossom : MonoBehaviour {
         Vector2 offsetPosition;
         public tile playerTile;
         public GameObject playerGameObject;
+        public Transform playerWheelTransform;
         private int points;
         public void AddPoints(int p)
         {
@@ -353,7 +354,7 @@ public class MilkBlossom : MonoBehaviour {
                         pl.playerNumber = p;
                         pl.playerTile = chosenTile;
                         pl.playerGameObject = newPlayer;
-                        
+                        pl.playerWheelTransform = newPlayer.transform.FindChild("PlayerWheels");
                         break;
                     }
                 }
@@ -653,6 +654,21 @@ public class MilkBlossom : MonoBehaviour {
                                                                             // bigWheel.transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2((mousePos.y - bigWheel.transform.position.y), (mousePos.x - bigWheel.transform.position.x)) * Mathf.Rad2Deg - 90);
                 bigWheel.transform.rotation = Quaternion.LookRotation(Vector3.forward, mousePos);
 
+                // WHEEL CONTROLS
+                // ROTATING PLAYER
+
+
+
+
+
+
+
+
+
+
+
+
+
             }
 
 
@@ -882,7 +898,7 @@ public class MilkBlossom : MonoBehaviour {
         // switch state to moving
         Vector3 sourcePos = p.playerGameObject.transform.position;
         Vector3 targetPos = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
-        StartCoroutine(moveUnit(sourcePos, targetPos, p.playerGameObject));
+        StartCoroutine(moveUnit(sourcePos, targetPos, p));
         //p.playerGameObject.transform.position = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
 
         // set player tile as the target tile
@@ -896,17 +912,37 @@ public class MilkBlossom : MonoBehaviour {
         
     }
 
-    IEnumerator moveUnit (Vector3 sourcePos, Vector3 targetPos, GameObject unit)
+
+
+
+    IEnumerator moveUnit (Vector3 sourcePos, Vector3 targetPos, player unit)
     {
-        float step = (1.0f / (sourcePos - targetPos).magnitude * Time.fixedDeltaTime);
-        float t = 0;
-        while (t<1.0f)
+        Transform wheelChild = unit.playerWheelTransform;
+        Vector2 lookPos = targetPos - sourcePos;
+        Quaternion rotation = Quaternion.LookRotation(Vector3.forward, lookPos);
+        float r = 0;
+        float rStep = (1.0f / Vector3.Angle(lookPos, wheelChild.forward) * Time.fixedDeltaTime  * 10);
+
+        while (r < 0.9f)
         {
-            t += step;
-            unit.transform.position = Vector3.Lerp(sourcePos, targetPos, t);
+            r += rStep;
+            wheelChild.rotation = Quaternion.Slerp(wheelChild.rotation, rotation, r);
             yield return new WaitForFixedUpdate();
         }
-        unit.transform.position = targetPos;
+
+        Debug.Log("Rotation complete, now moving");
+
+     //   wheelChild.rotation = rotation;               
+
+        float step = (1.0f / (sourcePos - targetPos).magnitude * Time.fixedDeltaTime);
+        float t = 0;
+        while (t < 1.0f)
+        {
+            t += step;
+            unit.playerGameObject.transform.position = Vector3.Lerp(sourcePos, targetPos, t);
+            yield return new WaitForFixedUpdate();
+        }
+        unit.playerGameObject.transform.position = targetPos;
 
         /*
         while (Vector3.Distance(sourcePos, targetPos) > 0.005f)

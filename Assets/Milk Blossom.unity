@@ -427,7 +427,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 449210, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 449210, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
       propertyPath: m_LocalRotation.x
@@ -449,9 +449,21 @@ Prefab:
       propertyPath: m_RootOrder
       value: 11
       objectReference: {fileID: 0}
-    - target: {fileID: 101714, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
-      propertyPath: m_IsActive
-      value: 0
+    - target: {fileID: 454110, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0.9659258
+      objectReference: {fileID: 0}
+    - target: {fileID: 454110, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: -0.25881928
+      objectReference: {fileID: 0}
+    - target: {fileID: 481094, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0.9659258
+      objectReference: {fileID: 0}
+    - target: {fileID: 481094, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: -0.25881928
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
@@ -1211,6 +1223,7 @@ MonoBehaviour:
   - {fileID: 253847604}
   endText: {fileID: 1985803307}
   playerObject: {fileID: 101714, guid: 8d0946df0b56a4f4db07ba29af0cf226, type: 2}
+  AIPlayers: 3
   activePlayer: 1
 --- !u!4 &1402407215
 Transform:
