@@ -73,10 +73,11 @@ public class MilkBlossom : MonoBehaviour {
     private float turnCooldown = 0.5f;
     public GameObject[] scoreObjects;
     private GameObject timerBar;
+    private float moveCoolDown = 2.0f;
 
     public GameObject endText;
     Camera mainCam;
-    private enum states {starting, planning, live, moving, ending};
+    private enum states {starting, planning, live, moving, ending, paused};
     states currentState = states.starting;
     Vector3[] directions = new Vector3[6];
     [Range(0, 5)]
@@ -88,7 +89,7 @@ public class MilkBlossom : MonoBehaviour {
     private int players = 3;
     public int AIPlayers = 3;
     static List<player> playerList = new List<player>();
-    public int activePlayer = 1;
+    public int activePlayer = 0;
 
     public class player
     {
@@ -138,6 +139,11 @@ public class MilkBlossom : MonoBehaviour {
         {
             return AI;
         }
+
+        public void SetAI(bool AIFlag)
+        {
+            AI = AIFlag;
+        }
     }
 
     public class tile
@@ -167,7 +173,13 @@ public class MilkBlossom : MonoBehaviour {
             } 
                 else
             {
-                tileObject.GetComponent<Renderer>().material.color = Color.white;
+                try {
+                    tileObject.GetComponent<Renderer>().material.color = Color.white;
+                }
+                catch
+                {
+                    Debug.Log("Couldn't clear highlight");
+                }
             }
         }
         public bool GetHighlight()
@@ -216,6 +228,7 @@ public class MilkBlossom : MonoBehaviour {
         public bool useAsInnerCircleRadius = true;
         int tileCount = 0;
         public int playerCount = 3;
+        public int AIPlayerCount;
         public GameObject playerObj;
 
         private float offsetX, offsetY;
@@ -268,9 +281,11 @@ public class MilkBlossom : MonoBehaviour {
 
             // do remaining setup things within ienumerator to ensure sequence is correct
             AllocatePoints();
-            yield return new WaitForSeconds(1.6f);
+            yield return new WaitForSeconds(1.4f);
             AllocatePlayers(playerObj);
-            activeTile = SelectPlayer(1);
+
+            // select starting player
+            activeTile = SelectPlayer(0);
 
         }
 
@@ -360,7 +375,13 @@ public class MilkBlossom : MonoBehaviour {
                         pl.playerTile = chosenTile;
                         pl.playerGameObject = newPlayer;
                         pl.playerWheelTransform = newPlayer.transform.FindChild("PlayerWheels");
-                        
+
+                        if(playerCount - p < AIPlayerCount)
+                        {
+                            pl.SetAI(true);
+                            Debug.Log("Player " + p.ToString() + " set to AI");
+                        }
+
                         break;
                     }
                 }
@@ -539,28 +560,142 @@ public class MilkBlossom : MonoBehaviour {
 
     
 	}
+   
+
+
+
+    void IncrementActivePlayer()
+    {
+        activePlayer++;
+        if (activePlayer >= players)
+        {
+            activePlayer = 0;
+        }
+        activeTile = SelectPlayer(activePlayer);
+
+        if(!ValidMoves(playerList[activePlayer]))
+        {
+            Debug.Log("No valid moves for player " + activePlayer.ToString());
+            if (playerList[activePlayer].GetAlive())
+            {
+                // can't make moves
+                // player is taken out of circulation
+                playerList[activePlayer].SetAlive(false);
+                playerList[activePlayer].DeathThroes();
+            
+                // does this mean all players are dead?
+                if (CheckPlayersAlive())
+                {
+                    IncrementActivePlayer();
+                }
+                else
+                {
+                    // transition to end state
+                    StartCoroutine(switchState(states.ending, 2.0f));
+                }
+            }
+        }
+
+/*
+        // if player is AI, do an AI move
+        if(playerList[activePlayer - 1].GetAI())
+        {
+            // 
+            AIMove(playerList[activePlayer - 1]);
+            switchState(states.moving, 2.0f);
+        }
+*/     
+
+    }
+
+    private bool CheckPlayersAlive()
+    {
+        for (int p = 0; p < players; p++)
+        {
+            if(playerList[p].GetAlive())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    IEnumerator SetupPlayers()
+    {
+
+        for(int p = 0; p < players; p++)
+        {
+
+        }
+        yield return new WaitForSeconds(1.0f);
+    }
+
+    void InitGame()
+    {
+        // create grid, allocate points and allocate players
+        liveHexGrid = new hexGrid();
+        liveHexGrid.x = hexGridx;
+        liveHexGrid.y = hexGridy;
+        liveHexGrid.radius = hexRadius;
+        liveHexGrid.useAsInnerCircleRadius = useAsInnerCircleRadius;
+        liveHexGrid.playerCount = players;
+        liveHexGrid.AIPlayerCount = AIPlayers;
+        liveHexGrid.playerObj = playerObject;
+        StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile, hexGridRadius));
+
+        // once game is setup, set it to live
+        StartCoroutine(switchState(states.live, 5.0f));
+        
+        // set player amounts
+        for (int i = 0; i < players; i++)
+        {
+            if (i < 2)
+            {
+                scoreObjects[i].transform.GetComponent<Text>().text = "P"+ (i + 1).ToString()+"\n"+"0";
+            }
+            else
+            {
+                scoreObjects[i].transform.GetComponent<Text>().text = "0\n" + "P" + (i + 1).ToString();
+            }  
+        }
+    }
+
+    IEnumerator switchState(states s, float delay)
+    {
+        // first pause the game in transition limbo until the delay has passed
+        currentState = states.paused;
+        yield return new WaitForSeconds(delay);
+
+        // then switch to desired state
+        currentState = s;
+
+        Debug.Log("Switced to " + s);
+
+    }
+
     // Update is called once per frame
     void Update()
     {
-
+        Debug.Log("acitve player " + activePlayer);
+        Debug.Log("current state " + currentState);
         // RESET
-        if(Input.GetKey(KeyCode.Escape))
+        if (Input.GetKey(KeyCode.Escape))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 
         }
 
-
-
-        timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(50);
+        timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(100);
         // timer before live
+
+        ClearHighlights();
 
         if (currentState == states.live)
         {
             turnCooldown -= Time.deltaTime;
             if (turnCooldown < 0)
             {
-                turnCooldown = 0.1f;
+                turnCooldown = 2f;
                 // CONTROLS
                 // debug visualisations 
                 if (Input.GetKey(KeyCode.F1))
@@ -598,7 +733,7 @@ public class MilkBlossom : MonoBehaviour {
                 if (Input.GetKey(KeyCode.X))
                 {
                     targetRange--;
-                    if(targetRange < 1)
+                    if (targetRange < 1)
                     {
                         targetRange = 1;
                     }
@@ -633,25 +768,16 @@ public class MilkBlossom : MonoBehaviour {
                     currentDir = 1;
                 }
 
-                tile targetTile = LinearHighlighter(activeTile, currentDir, targetRange);
-                if(Input.GetKey(KeyCode.T))
-                {
-                    PseudoAIMove(playerList[activePlayer - 1]);
-                }
-                      
 
-                if (Input.GetKey(KeyCode.Return))
+                tile targetTile = null;
+                if (Input.GetKey(KeyCode.T))
                 {
-                    if (activeTile != targetTile)
-                    {
-
-                        MakeMove(playerList[activePlayer - 1], targetTile);
-                        IncrementActivePlayer();
-                    }
+                    PseudoAIMove(playerList[activePlayer]);
                 }
+
 
                 // orient big wheel with mouse
-                Vector2 mousePos;
+                /*Vector2 mousePos;
                 Vector3 screenPos;
                 mousePos = Input.mousePosition;
 
@@ -659,136 +785,43 @@ public class MilkBlossom : MonoBehaviour {
                                                                             //Rotates toward the mouse
                                                                             // bigWheel.transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2((mousePos.y - bigWheel.transform.position.y), (mousePos.x - bigWheel.transform.position.x)) * Mathf.Rad2Deg - 90);
                 bigWheel.transform.rotation = Quaternion.LookRotation(Vector3.forward, mousePos);
-
+                */
                 // WHEEL CONTROLS
                 // ROTATING PLAYER
 
 
+                // check if it's AI's turn to go
+                if (playerList[activePlayer].GetAI())
+                {
+                    AIMove(playerList[activePlayer]);
+
+                } else
+                {
+                    targetTile = LinearHighlighter(activeTile, currentDir, targetRange);
+                }
 
 
+                if (Input.GetKey(KeyCode.Return))
+                {
+                    if (activeTile != targetTile)
+                    {
 
-
-
-
-
-
-
-
+                        MakeMove(playerList[activePlayer], targetTile);
+                        // IncrementativePlayer();
+                    }
+                }
 
             }
 
-
-            if(currentState == states.ending)
+            if (currentState == states.ending)
             {
-                endText.GetComponent<Text>().text = "ENDED";
+                endText.transform.GetComponent<Text>().text = "ENDED";
             }
-            
+
         }
     }
 
 
-
-    void IncrementActivePlayer()
-    {
-        activePlayer++;
-        if (activePlayer > players)
-        {
-            activePlayer = 1;
-        }
-        activeTile = SelectPlayer(activePlayer);
-
-        if(!ValidMoves(playerList[activePlayer-1]))
-        {
-            if (playerList[activePlayer - 1].GetAlive())
-            {
-                // can't make moves
-                // player is taken out of circulation
-                playerList[activePlayer - 1].SetAlive(false);
-                playerList[activePlayer - 1].DeathThroes();
-            }
-
-            // does this mean all players are dead?
-            if (CheckPlayersAlive())
-            {
-                IncrementActivePlayer();
-            }
-            else
-            {
-                // transition to end state
-                StartCoroutine(switchState(states.ending, 2.0f));
-            }
-        }
-
-        // if player is AI, do an AI move
-        if(playerList[activePlayer - 1].GetAI())
-        {
-            // 
-
-        }
-       
-    }
-
-    private bool CheckPlayersAlive()
-    {
-        for (int p = 0; p < players; p++)
-        {
-            if(playerList[p].GetAlive())
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    IEnumerator SetupPlayers()
-    {
-
-        for(int p = 0; p < players; p++)
-        {
-
-        }
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    void InitGame()
-    {
-        // create grid, allocate points and allocate players
-        liveHexGrid = new hexGrid();
-        liveHexGrid.x = hexGridx;
-        liveHexGrid.y = hexGridy;
-        liveHexGrid.radius = hexRadius;
-        liveHexGrid.useAsInnerCircleRadius = useAsInnerCircleRadius;
-        liveHexGrid.playerCount = players;
-        liveHexGrid.playerObj = playerObject;
-
-        StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile, hexGridRadius));
-        StartCoroutine(basicDelay(1.0f));
-
-        // once game is setup, set it to live
-        StartCoroutine(switchState(states.live, 3.0f));
-        
-        // set player amounts
-        for (int i = 0; i < players; i++)
-        {
-            if (i < 2)
-            {
-                scoreObjects[i].transform.GetComponent<Text>().text = "P"+ (i + 1).ToString()+"\n"+"0";
-            }
-            else
-            {
-                scoreObjects[i].transform.GetComponent<Text>().text = "0\n" + "P" + (i + 1).ToString();
-            }  
-        }
-    }
-
-    IEnumerator switchState(states s, float delay)
-    {
- 
-        currentState = s;
-        yield return new WaitForSeconds(delay);
-        Debug.Log("Switced to " + s);
-
-    }
 
     // if switching to player, check if any valid moves are available
     public bool ValidMoves(player p)
@@ -813,13 +846,13 @@ public class MilkBlossom : MonoBehaviour {
     }
 
 
-    static tile SelectPlayer(int playerNumber = 1)
+    static tile SelectPlayer(int playerNumber = 0)
     {
-        Debug.Log("playernumber" + playerNumber);
+        Debug.Log("player number " + (playerNumber + 1).ToString() + " selected");
         foreach(player p in playerList)
         {
             Debug.Log(p.playerNumber);
-            if (p.playerNumber == playerNumber)
+            if (p.playerNumber == (playerNumber + 1))
             {
                 Debug.Log("Setting active tile");
                 return p.playerTile;
@@ -827,6 +860,24 @@ public class MilkBlossom : MonoBehaviour {
         }
         return null;
     }
+
+    public void ClearHighlights()
+    {
+        foreach (tile t in tileList)
+        {
+            t.SetHighlight(false);
+        }
+        try
+        {
+            playerList[activePlayer].playerTile.SetHighlight(true);
+        }
+        catch
+        {
+
+        }
+
+    }
+
 
     tile LinearHighlighter(tile sourceTile, int direction, int range)
     {
@@ -899,6 +950,8 @@ public class MilkBlossom : MonoBehaviour {
 
     void MakeMove(player p, tile targetTile)
     {
+
+        switchState(states.moving, 0.0f);
         // player makes a move
 
         // acquire points
@@ -911,9 +964,6 @@ public class MilkBlossom : MonoBehaviour {
         // switch state to moving
         Vector3 sourcePos = p.playerGameObject.transform.position;
         Vector3 targetPos = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
-        StartCoroutine(moveUnit(sourcePos, targetPos, p));
-        //p.playerGameObject.transform.position = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
-
         // set player tile as the target tile
         p.playerTile = targetTile;
         activeTile = targetTile;
@@ -921,14 +971,16 @@ public class MilkBlossom : MonoBehaviour {
 
         // update scores
         UpdateScores();
-        
+        StartCoroutine(moveUnit(sourcePos, targetPos, p));
+       
+
+
+
     }
-
-
-
 
     IEnumerator moveUnit (Vector3 sourcePos, Vector3 targetPos, player unit)
     {
+        currentState = states.moving;
         Transform wheelChild = unit.playerWheelTransform;
         Vector2 lookPos = targetPos - sourcePos;
         Quaternion rotation = Quaternion.LookRotation(Vector3.forward, lookPos);
@@ -955,12 +1007,10 @@ public class MilkBlossom : MonoBehaviour {
         }
         unit.playerGameObject.transform.position = targetPos;
 
-        /*
-        while (Vector3.Distance(sourcePos, targetPos) > 0.005f)
-        {
-            unit.transform.position = Vector3.MoveTowards(sourcePos, targetPos, 2.0f * Time.deltaTime);
-            yield return null;
-        }*/
+        currentState = states.live;
+        // Only once object has moved, do we increment to the next player
+        yield return new WaitForSeconds(0.5f);
+        IncrementActivePlayer();
 
     }
 
@@ -970,9 +1020,13 @@ public class MilkBlossom : MonoBehaviour {
         // see if a move is feasible
         if(ValidMoves(p))
         {
-            targetTile = PseudoAIMove(p);
-            MakeMove(p, targetTile);
-            IncrementActivePlayer();
+            if (currentState == states.live)
+            {
+                currentState = states.paused;
+                switchState(states.moving, 2.0f);
+                targetTile = PseudoAIMove(p);
+                MakeMove(p, targetTile);
+            }
         }
 
     }
