@@ -39,29 +39,31 @@ public class MilkBlossom : MonoBehaviour {
     // if no three point tiles are available, do the same for two point tiles, 
     // else do it for one point tiles
 
-        // still to do:
-        // visual display of points on tiles, maybe as hebrew words
-        // visual display of units, need wheels and ideally an insect-bot like visual
-        // hex model
-        // end condition
-        // basic AI
-        // restart button                                                                       x
-        // third wheel functionality
-        // force feedback placeholders
-        // falling hair                                                                         
+    // still to do:
+    // visual display of points on tiles, maybe as hebrew words
+    // visual display of units, need wheels and ideally an insect-bot like visual
+    // hex model
+    // end condition
+    // basic AI
+    // restart button                                                                       x
+    // third wheel functionality
+    // force feedback placeholders
+    // falling hair                                                                         
 
     // further ideas
     // just let players do as many turns as feasible, don't worry about isolated areas (though
     // they need to be taken into account in calculating when the game ends?
     // game ends when a player has no further valid moves
     // player who can't move does a shaky-shake and perishes
-
+    public static Color[] highlightColorList = new Color[3]; // 0 for source, 1 for midway and 2 for target
+    public Color[] highlightColorsListPublic;
 
     public GameObject hexTile;
     hexGrid liveHexGrid;
     public int hexGridx = 5;
     public int hexGridy = 5;
     public float hexRadius = 0.5f;
+    public int hexGridRadius = 3;
     public bool useAsInnerCircleRadius = true;
     static List<tile> tileList = new List<tile>();
     static tile activeTile;
@@ -112,6 +114,7 @@ public class MilkBlossom : MonoBehaviour {
         bool active = true;
         public bool occupied = false;
         bool highlighted = false;
+        public int highlightColor;
         public GameObject tileObject;
 
         void drawPoints()
@@ -124,7 +127,7 @@ public class MilkBlossom : MonoBehaviour {
             highlighted = isOn;
             if(highlighted)
             {
-                tileObject.GetComponent<Renderer>().material.color = Color.blue;
+                tileObject.GetComponent<Renderer>().material.color = highlightColorList[highlightColor];
             } 
                 else
             {
@@ -311,12 +314,15 @@ public class MilkBlossom : MonoBehaviour {
                         Debug.Log("allocating player");
                         //yield return new WaitForSeconds(standardDelay);
                         GameObject newPlayer = (GameObject)Instantiate(playerObject, new Vector3(chosenTile.tileObject.transform.position.x, chosenTile.tileObject.transform.position.y, -0.5f), Quaternion.identity);
+                        // set player text
+                        newPlayer.transform.FindChild("PlayerLabel").GetComponent<TextMesh>().text = "P" + p.ToString();
                         chosenTile.SetOccupied(true);
                         player pl = new player();
                         playerList.Add(pl);
                         pl.playerNumber = p;
                         pl.playerTile = chosenTile;
                         pl.playerGameObject = newPlayer;
+                        
                         break;
                     }
                 }
@@ -470,6 +476,11 @@ public class MilkBlossom : MonoBehaviour {
     
 	// Use this for initialization
 	void Start () {
+        for (int c = 0; c < 3; c++)
+        {
+            highlightColorList[c] = highlightColorsListPublic[c];
+        }
+
         timerBar = GameObject.Find("TimerBar");
 
         InitGame();
@@ -533,10 +544,19 @@ public class MilkBlossom : MonoBehaviour {
                 if (Input.GetKey(KeyCode.W))
                 {
                     targetRange++;
+                    if (targetRange > hexGridRadius * 2)
+                    {
+                        targetRange = hexGridRadius * 2;
+                    }
+                    // dependent on gridradius
                 }
                 if (Input.GetKey(KeyCode.X))
                 {
                     targetRange--;
+                    if(targetRange < 1)
+                    {
+                        targetRange = 1;
+                    }
                 }
 
                 // Rudimentary highlight controls
@@ -615,7 +635,7 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.playerCount = players;
         liveHexGrid.playerObj = playerObject;
 
-        StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile));
+        StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile, hexGridRadius));
         StartCoroutine(basicDelay(1.0f));
 
         // once game is setup, set it to live
@@ -662,6 +682,7 @@ public class MilkBlossom : MonoBehaviour {
     {
         Mathf.Clamp((float)direction, 0, 5);
 
+ 
         // there should be a way to know from the cubic coordinates whether the tile is on a line
         
         // first, unhighlight all tiles
@@ -677,7 +698,7 @@ public class MilkBlossom : MonoBehaviour {
         {
 
         }
-
+        sourceTile.highlightColor = 0;
         tile targetTile = sourceTile;
         for (int r = 1; r <= range; r++)
         {
@@ -692,11 +713,13 @@ public class MilkBlossom : MonoBehaviour {
                     {
                         t.SetHighlight(true);
                         targetTile = t;
+                        targetTile.highlightColor = 1;
                     }
                     else
                     {
                         // if it's not a valid tile then it is either deactivated or occupied and the last tile should be the one before the obstacle
                         range = r; // bad practice, setting an int within the function that's returning a type
+                        targetTile.highlightColor = 2;
                         return targetTile;
 
                     }
@@ -704,6 +727,8 @@ public class MilkBlossom : MonoBehaviour {
             }
 
         }
+        // final target tile is highlighted with final highlight color
+        targetTile.highlightColor = 2;
         return targetTile;
     }
 
