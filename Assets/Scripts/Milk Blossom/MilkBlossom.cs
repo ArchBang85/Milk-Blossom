@@ -43,18 +43,20 @@ public class MilkBlossom : MonoBehaviour {
     // visual display of points on tiles, maybe as hebrew words
     // visual display of units, need wheels and ideally an insect-bot like visual
     // hex model
-    // end condition
-    // basic AI
+    // end condition                                                                        x
+    // basic AI                                                                             x
     // restart button                                                                       x
     // third wheel functionality
     // force feedback placeholders
-    // falling hair                                                                         
+    // falling hair                                                                         x                                                                      
 
     // further ideas
     // just let players do as many turns as feasible, don't worry about isolated areas (though
-    // they need to be taken into account in calculating when the game ends?
-    // game ends when a player has no further valid moves
+    // they need to be taken into account in calculating when the game ends?                x
+    // game ends when a player has no further valid moves                                   x
     // player who can't move does a shaky-shake and perishes
+    // music tied to the tiles the players are on
+
     public static Color[] highlightColorList = new Color[3]; // 0 for source, 1 for midway and 2 for target
     public Color[] highlightColorsListPublic;
     public GameObject bigWheel;
@@ -84,6 +86,7 @@ public class MilkBlossom : MonoBehaviour {
     public GameObject playerObject;
     [Range(1,4)]
     private int players = 3;
+    public int AIPlayers = 3;
     static List<player> playerList = new List<player>();
     public int activePlayer = 1;
 
@@ -205,7 +208,7 @@ public class MilkBlossom : MonoBehaviour {
         public int y = 5;
         public float radius = 0.5f;
         public bool useAsInnerCircleRadius = true;
-        int tileCount;
+        int tileCount = 0;
         public int playerCount = 3;
         public GameObject playerObj;
 
@@ -235,6 +238,7 @@ public class MilkBlossom : MonoBehaviour {
                 {
                     // create tile class
                     tile newTile = new tile();
+                    newTile.index = tileCount; 
                     tileList.Add(newTile);
                     tileCount++;
 
@@ -475,7 +479,7 @@ public class MilkBlossom : MonoBehaviour {
             // simply number tiles
             for (int i = 0; i < tileList.Count; i++)
             {
-                tileList[i].index = 0;
+                
                 AddDebugText(tileList[i].tileObject, i.ToString());
             }
         }
@@ -864,17 +868,22 @@ public class MilkBlossom : MonoBehaviour {
         }
     }
 
-
     void MakeMove(player p, tile targetTile)
     {
+        // player makes a move
+
         // acquire points
         p.AddPoints(p.playerTile.points);
 
         // leave current tile
         liveHexGrid.leaveTile(p.playerTile);
-        
+
         // move player unit to new tile
-        p.playerGameObject.transform.position = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
+        // switch state to moving
+        Vector3 sourcePos = p.playerGameObject.transform.position;
+        Vector3 targetPos = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
+        StartCoroutine(moveUnit(sourcePos, targetPos, p.playerGameObject));
+        //p.playerGameObject.transform.position = new Vector3(targetTile.tileObject.transform.position.x, targetTile.tileObject.transform.position.y, p.playerGameObject.transform.position.z);
 
         // set player tile as the target tile
         p.playerTile = targetTile;
@@ -883,44 +892,79 @@ public class MilkBlossom : MonoBehaviour {
 
         // update scores
         UpdateScores();
+
+        
+    }
+
+    IEnumerator moveUnit (Vector3 sourcePos, Vector3 targetPos, GameObject unit)
+    {
+        float step = (1.0f / (sourcePos - targetPos).magnitude * Time.fixedDeltaTime);
+        float t = 0;
+        while (t<1.0f)
+        {
+            t += step;
+            unit.transform.position = Vector3.Lerp(sourcePos, targetPos, t);
+            yield return new WaitForFixedUpdate();
+        }
+        unit.transform.position = targetPos;
+
+        /*
+        while (Vector3.Distance(sourcePos, targetPos) > 0.005f)
+        {
+            unit.transform.position = Vector3.MoveTowards(sourcePos, targetPos, 2.0f * Time.deltaTime);
+            yield return null;
+        }*/
+
+    }
+
+    void AIMove()
+    {
+
     }
 
     void PseudoAIMove(player p)
     {
-
         tile targetTile;
         List<tile> potentialTiles = new List<tile>();
         List<int> tileValues = new List<int>();
 
         int maxRange = hexGridRadius * 2;
-
         // brute forcing it
         // unit contains own position?
 
         // for every direction
         for (int d = 0; d < directions.Length; d++)
         {
+            bool hitSnag = false;
             // for each tile in range
-            for (int r = 1; r <= maxRange; r++)
-            {
-                Vector3 relativeDir = directions[d] * r;
-                
-                // check the tile by cycling all tiles
-                for (int i = 0; i < tileList.Count; i++)
-                {
-                    if(tileList[i].cubePosition == p.playerTile.cubePosition + relativeDir)
-                    {
-                        if(tileList[i].GetActive() && !tileList[i].GetOccupied())
-                        {
-                            potentialTiles.Add(tileList[i]);
-                            // some weighting for guaranteed points from next move
-                            tileValues.Add(tileList[i].points * 4);
-                        }
-                    }    
-                }
-            }
-        }
 
+                for (int r = 1; r <= maxRange; r++)
+                {
+                     if (!hitSnag)
+                    {
+                        Vector3 relativeDir = directions[d] * r;
+
+                        // check the tile by cycling all tiles
+                        for (int i = 0; i < tileList.Count; i++)
+                        {
+                            if (tileList[i].cubePosition == p.playerTile.cubePosition + relativeDir)
+                            {
+                                if (tileList[i].GetActive() && !tileList[i].GetOccupied())
+                                {
+                                    potentialTiles.Add(tileList[i]);
+                                    // some weighting for guaranteed points from next move
+                                    tileValues.Add(tileList[i].points * 4);
+                                }
+                                else
+                                {
+                                    // tile is blocked and the dir should be incremented 
+                                    hitSnag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+        }
         // starting thinking of the move +1 
         // go through all promising tiles and add up diagonals' points
 
