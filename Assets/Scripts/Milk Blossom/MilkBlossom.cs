@@ -123,6 +123,11 @@ public class MilkBlossom : MonoBehaviour {
             {
                 playerGameObject.transform.localScale *= 2.0f;
             }
+
+            catch
+            {
+
+            }
         }
     }
 
