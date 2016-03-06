@@ -59,6 +59,7 @@ public class MilkBlossom : MonoBehaviour {
 
     public static Color[] highlightColorList = new Color[3]; // 0 for source, 1 for midway and 2 for target
     public Color[] highlightColorsListPublic;
+    public GameObject[] pointsObjects;
     public GameObject bigWheel;
     public GameObject hexTile;
     hexGrid liveHexGrid;
@@ -230,6 +231,7 @@ public class MilkBlossom : MonoBehaviour {
         public int playerCount = 3;
         public int AIPlayerCount;
         public GameObject playerObj;
+        public GameObject[] pointsObjects;
 
         private float offsetX, offsetY;
         private float standardDelay = 0.03f;
@@ -283,9 +285,7 @@ public class MilkBlossom : MonoBehaviour {
             AllocatePoints();
             yield return new WaitForSeconds(1.4f);
             AllocatePlayers(playerObj);
-            //// debug temp
 
-            DisplayPoints();
             // select starting player
             activeTile = SelectPlayer(0);
 
@@ -324,6 +324,10 @@ public class MilkBlossom : MonoBehaviour {
                                 pool[k] -= 1;
                                 // this tile gets 1 point
                                 chosenTile.points = k + 1;
+                                // Instantiate points object
+                                float zOffset = -1;
+                                Instantiate(pointsObjects[k], new Vector3(chosenTile.tileObject.transform.position.x, chosenTile.tileObject.transform.position.y, zOffset), Quaternion.identity);
+
                                 // AddDebugText(chosenTile.tileObject, chosenTile.points.ToString());
                                 choosableTiles.Remove(chosenTile);
 
@@ -547,6 +551,9 @@ public class MilkBlossom : MonoBehaviour {
         {
             highlightColorList[c] = highlightColorsListPublic[c];
         }
+
+
+        Instantiate(pointsObjects[2], transform.position, Quaternion.identity);
         mainCam = GameObject.Find("Main Camera").GetComponent<Camera>();
 
         timerBar = GameObject.Find("TimerBar");
@@ -643,6 +650,7 @@ public class MilkBlossom : MonoBehaviour {
         liveHexGrid.playerCount = players;
         liveHexGrid.AIPlayerCount = AIPlayers;
         liveHexGrid.playerObj = playerObject;
+        liveHexGrid.pointsObjects = pointsObjects;
         StartCoroutine(liveHexGrid.CreateHexShapedGrid(hexTile, hexGridRadius));
 
         // once game is setup, set it to live
@@ -690,10 +698,11 @@ public class MilkBlossom : MonoBehaviour {
         timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(100);
         // timer before live
 
-        ClearHighlights();
+
 
         if (currentState == states.live)
         {
+            ClearHighlights();
             turnCooldown -= Time.deltaTime;
             if (turnCooldown < 0)
             {
@@ -1049,6 +1058,7 @@ public class MilkBlossom : MonoBehaviour {
     {
         tile targetTile;
         List<tile> potentialTiles = new List<tile>();
+        
         List<int> tileValues = new List<int>();
 
         int maxRange = hexGridRadius * 2;
@@ -1088,8 +1098,16 @@ public class MilkBlossom : MonoBehaviour {
                     }
                 }
         }
+
         // starting thinking of the move +1 
         // go through all promising tiles and add up diagonals' points
+
+
+        // Think of blocking opponents immediate best move
+        // for each opponent, do the same heuristic for the best immediate move, 
+        // then if those tiles are within reach for this unit 
+        // 
+
 
         for (int t = 0; t < potentialTiles.Count; t++)
         {
@@ -1116,6 +1134,10 @@ public class MilkBlossom : MonoBehaviour {
                 }
             }
         }
+
+        // Think of the move +2
+
+
 
         List<tile> highValueTiles = new List<tile>();
         int highestValue = 0;

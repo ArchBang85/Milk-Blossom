@@ -944,7 +944,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 13
+  m_RootOrder: 14
 --- !u!1 &843478174
 GameObject:
   m_ObjectHideFlags: 0
@@ -972,7 +972,7 @@ Transform:
   m_Children:
   - {fileID: 1667638279}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 11
 --- !u!1 &933529701
 GameObject:
   m_ObjectHideFlags: 0
@@ -1432,6 +1432,10 @@ MonoBehaviour:
   - {r: 0.8161765, g: 0.53291523, b: 0.10802336, a: 0.822}
   - {r: 0.52011245, g: 0.73950016, b: 0.9558824, a: 0.628}
   - {r: 0.12121541, g: 0.3734579, b: 0.86764705, a: 0.541}
+  pointsObjects:
+  - {fileID: 160838, guid: 2867d67c937fe50458ded6ef47ae1b6e, type: 2}
+  - {fileID: 154586, guid: 54aab2bcd4613c44897066bccf974768, type: 2}
+  - {fileID: 108644, guid: ebc55a048fc435c4489d19a2d666381f, type: 2}
   bigWheel: {fileID: 1667638278}
   hexTile: {fileID: 198570, guid: 99362304397641a4f8564dec692cfdea, type: 2}
   hexGridx: 6
