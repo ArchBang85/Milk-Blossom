@@ -1049,6 +1049,11 @@ public class MilkBlossom : MonoBehaviour {
 
     }
 
+    void TiltBoard(int direction)
+    {
+
+    }
+
     void AIMove(player p)
     {
         tile targetTile;
