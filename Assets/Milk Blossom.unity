@@ -411,6 +411,48 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 253847604}
+--- !u!1001 &279356261
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 99
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071067
+      objectReference: {fileID: 0}
+    - target: {fileID: 436646, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_RootOrder
+      value: 14
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1001 &331188171
 Prefab:
   m_ObjectHideFlags: 0
@@ -1078,7 +1120,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: acd2e9d1214a19543a2053f7b9c2ba34, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.29
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: acd2e9d1214a19543a2053f7b9c2ba34, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1391,7 +1433,7 @@ MonoBehaviour:
   - {r: 0.52011245, g: 0.73950016, b: 0.9558824, a: 0.628}
   - {r: 0.12121541, g: 0.3734579, b: 0.86764705, a: 0.541}
   bigWheel: {fileID: 1667638278}
-  hexTile: {fileID: 156454, guid: 168f7dac84e02d14095cbf0e0d31dbb2, type: 2}
+  hexTile: {fileID: 198570, guid: 99362304397641a4f8564dec692cfdea, type: 2}
   hexGridx: 6
   hexGridy: 6
   hexRadius: 1.2

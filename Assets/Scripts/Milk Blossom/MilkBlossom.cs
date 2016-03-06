@@ -1044,6 +1044,7 @@ public class MilkBlossom : MonoBehaviour {
 
     }
 
+
     tile PseudoAIMove(player p)
     {
         tile targetTile;
@@ -1137,6 +1138,49 @@ public class MilkBlossom : MonoBehaviour {
         targetTile = highValueTiles[Random.Range(0, highValueTiles.Count)];
         Debug.Log("My name is Player" + p.playerNumber.ToString() + " and I'd like to move to tile " + targetTile.index.ToString());
         return targetTile;
+    }
+
+
+
+    public static class AI_Brain
+    {
+        
+ 
+        /*
+        List<tile> potentialTiles = new List<tile>();
+
+
+        void EvaluateDiagonals(player p, int scoreWeighting)
+        {
+            for (int t = 0; t < potentialTiles.Count; t++)
+            {
+                // for each direction
+                for (int d = 0; d < directions.Length; d++)
+                {
+                    // for each tile in range
+                    for (int r = 1; r <= maxRange; r++)
+                    {
+                        Vector3 relativeDir = directions[d] * r;
+
+                        // check the tile by cycling all tiles
+                        for (int i = 0; i < tileList.Count; i++)
+                        {
+                            if (tileList[i].cubePosition == potentialTiles[t].cubePosition + relativeDir)
+                            {
+                                if (tileList[i].GetActive() && !tileList[i].GetOccupied())
+                                {
+                                    // some weighting for guaranteed points from next move
+                                    tileValues[t] += tileList[i].points;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        */
+
     }
 
     Vector3 CubeDirection(int dir)
