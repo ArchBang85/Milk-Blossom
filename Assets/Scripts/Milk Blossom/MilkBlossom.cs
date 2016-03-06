@@ -76,6 +76,8 @@ public class MilkBlossom : MonoBehaviour {
     private GameObject timerBar;
     private float moveCoolDown = 2.0f;
 
+    
+
     public GameObject endText;
     Camera mainCam;
     private enum states {starting, planning, live, moving, ending, paused};
@@ -159,7 +161,7 @@ public class MilkBlossom : MonoBehaviour {
         bool highlighted = false;
         public int highlightColor;
         public GameObject tileObject;
-
+        public GameObject tilePointsObject;
         void drawPoints()
         {
             //
@@ -203,8 +205,9 @@ public class MilkBlossom : MonoBehaviour {
 
             if(!active)
             {
-                // what should happen when the tile is deactivated?
-                tileObject.GetComponent<Renderer>().enabled = false;
+                tileObject.GetComponent<HexBehaviour>().DropTile(12f);
+                tilePointsObject.SetActive(false) ;
+
             }
                    
 
@@ -215,11 +218,17 @@ public class MilkBlossom : MonoBehaviour {
             return active;
         }
 
+        private IEnumerator DisableRenderer(GameObject o, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            o.GetComponent<Renderer>().enabled = false;
+        }
     }
     static IEnumerator basicDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
     }
+
 
     public class hexGrid
     {
@@ -235,7 +244,7 @@ public class MilkBlossom : MonoBehaviour {
 
         private float offsetX, offsetY;
         private float standardDelay = 0.03f;
-
+        private string superSecretMessage = "Videogames Rot Your Brains Videogames Rot Your Brains";
         // list of positions
         new Vector3 maxBounds = new Vector3(0, 0, 0);
         new Vector3 minBounds = new Vector3(0, 0, 0);
@@ -272,12 +281,13 @@ public class MilkBlossom : MonoBehaviour {
                 }
 
             }
-            foreach (tile t in tileList)
+            for (int t = 0; t< tileList.Count; t++)
             {
 
-                GameObject newTileObject = (GameObject)Instantiate(hexTile, t.offsetPosition, Quaternion.identity);
-                t.tileObject = newTileObject;
-                t.tileObject.transform.parent = GameObject.Find("HexGrid").transform;
+                GameObject newTileObject = (GameObject)Instantiate(hexTile, tileList[t].offsetPosition, Quaternion.identity);
+                tileList[t].tileObject = newTileObject;
+                tileList[t].tileObject.transform.parent = GameObject.Find("HexGrid").transform;
+                tileList[t].tileObject.transform.FindChild("debugtext").gameObject.GetComponent<DebugTooltip>().debugText = superSecretMessage[t].ToString();
                 yield return new WaitForSeconds(standardDelay);
             }
 
@@ -325,9 +335,9 @@ public class MilkBlossom : MonoBehaviour {
                                 // this tile gets 1 point
                                 chosenTile.points = k + 1;
                                 // Instantiate points object
-                                float zOffset = -1;
-                                Instantiate(pointsObjects[k], new Vector3(chosenTile.tileObject.transform.position.x, chosenTile.tileObject.transform.position.y, zOffset), Quaternion.identity);
-
+                                float zOffset = 2f;
+                                GameObject pointsObject = (GameObject)Instantiate(pointsObjects[k], new Vector3(chosenTile.tileObject.transform.position.x, chosenTile.tileObject.transform.position.y, zOffset), Quaternion.identity);
+                                chosenTile.tilePointsObject = pointsObject;
                                 // AddDebugText(chosenTile.tileObject, chosenTile.points.ToString());
                                 choosableTiles.Remove(chosenTile);
 
@@ -437,6 +447,12 @@ public class MilkBlossom : MonoBehaviour {
         {
             tileToLeave.SetOccupied(false);
             tileToLeave.SetActive(false);
+
+
+            // set tile to fall shrink and fall into nothing
+            //tileToLeave
+
+
         }
 
         public void enterTile(tile tileToEnter)
@@ -552,8 +568,6 @@ public class MilkBlossom : MonoBehaviour {
             highlightColorList[c] = highlightColorsListPublic[c];
         }
 
-
-        Instantiate(pointsObjects[2], transform.position, Quaternion.identity);
         mainCam = GameObject.Find("Main Camera").GetComponent<Camera>();
 
         timerBar = GameObject.Find("TimerBar");
@@ -695,10 +709,9 @@ public class MilkBlossom : MonoBehaviour {
 
         }
 
-        timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(100);
+//        timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSizeAsPercentage(100);
+        //timerBar.transform.GetComponent<ProgressBar.ProgressBarBehaviour>().SetFillerSize();
         // timer before live
-
-
 
         if (currentState == states.live)
         {

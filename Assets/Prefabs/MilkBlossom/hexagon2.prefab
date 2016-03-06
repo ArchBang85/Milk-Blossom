@@ -191,14 +191,14 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 169276}
-  m_Text: 1
+  m_Text: 
   m_OffsetZ: 0
   m_CharacterSize: 0.005
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
   m_TabSize: 4
-  m_FontSize: 24
+  m_FontSize: 18
   m_FontStyle: 0
   m_RichText: 1
   m_Font: {fileID: 0}
@@ -259,6 +259,18 @@ Prefab:
     - target: {fileID: 0}
       propertyPath: m_LocalScale.z
       value: 38
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 1b192dbc8c3918e4ab38871afd9f8543, type: 2}
+    - target: {fileID: 0}
+      propertyPath: m_Text
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: m_FontSize
+      value: 18
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}

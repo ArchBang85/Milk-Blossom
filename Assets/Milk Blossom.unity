@@ -450,6 +450,10 @@ Prefab:
       propertyPath: m_RootOrder
       value: 14
       objectReference: {fileID: 0}
+    - target: {fileID: 198570, guid: 99362304397641a4f8564dec692cfdea, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 99362304397641a4f8564dec692cfdea, type: 2}
   m_IsPrefabParent: 0
@@ -876,6 +880,10 @@ Prefab:
       propertyPath: m_AnchoredPosition.y
       value: -2
       objectReference: {fileID: 0}
+    - target: {fileID: 11423006, guid: 02e917cf5b02271479631cc13cb38c5f, type: 2}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 02e917cf5b02271479631cc13cb38c5f, type: 2}
   m_IsPrefabParent: 0
@@ -944,7 +952,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 14
+  m_RootOrder: 13
 --- !u!1 &843478174
 GameObject:
   m_ObjectHideFlags: 0
